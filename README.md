@@ -9,7 +9,7 @@ Ubuntu: 20.04
 
 Python: 3.11.5
 
-Torch: 2.2.0
+Torch: 2.1.0
 
 
 # Source
