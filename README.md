@@ -3,7 +3,7 @@
 Brevitas is a PyTorch library for neural network quantization, with support for both post-training quantization (PTQ) and quantization-aware training (QAT).
 
 # Info
-Version: 0.10.0
+Brevitas: 0.10.0
 
 Ubuntu: 20.04
 
