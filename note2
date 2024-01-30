@@ -1,5 +1,0 @@
-'WEIGHT_BIT_WIDTH': 1,
-'ACT_BIT_WIDTH': 1,
-'IN_BIT_WIDTH': 1,
-
-model = model.transform(to_hls.InferBinaryMatrixVectorActivation("decoupled"))
