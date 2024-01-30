@@ -7,7 +7,8 @@ Version: 0.10
 
 # Source
 
-Xilinx: 
+Xilinx:  
+
 https://github.com/Xilinx/brevitas  
 https://xilinx.github.io/brevitas/getting_started
 
