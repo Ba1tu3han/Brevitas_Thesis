@@ -7,7 +7,7 @@ Brevitas: 0.10.0 (tag:TBD)
 
 Ubuntu: 20.04
 
-Python: 3.11.5 (>= 3.8)
+Python: 3.11.5 (>= 3.8) 
 
 Torch: 2.1.0 (Brevitas 0.10.0 supports up to Torch 2.1.0 and higher than 1.9.1)
 
