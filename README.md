@@ -7,6 +7,9 @@ Version: 0.10.0
 
 Ubuntu: 20.04
 
+Python: 3.11.5
+
+
 # Source
 
 Xilinx:  
