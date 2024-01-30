@@ -15,6 +15,7 @@ https://xilinx.github.io/brevitas/getting_started
 # Directory
 
 Directories are followed respectively and each step has variants. 
+
 1-Basic (W1A2, W2A2) 
 
 2-Advance 
