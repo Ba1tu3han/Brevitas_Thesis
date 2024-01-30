@@ -22,7 +22,7 @@ Directories are followed respectively and each step has variants.
 
 3-Custom 
 
-# Big Picture FINN-Brevitas-FPGA
+# Big Picture Brevitas-FINN-FPGA
 
 ![General Diagram2 drawio](https://github.com/Ba1tu3han/Brevitas_Thesis/assets/29502318/528d0112-5921-4df7-b393-750e1c24635e)
 
