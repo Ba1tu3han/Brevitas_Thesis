@@ -9,7 +9,7 @@ Ubuntu: 20.04
 
 Python: 3.11.5
 
-Torch: 2.1.0
+Torch: 2.1.0 (Brevitas 0.10.0 supports at most Torch 2.1.0)
 
 
 # Source
