@@ -11,6 +11,8 @@ Python: 3.10.12 (>= 3.8)
 
 Torch: 2.1.0 (Brevitas 0.10.0 supports up to Torch 2.1.0 and higher than 1.9.1)
 
+CUDA: 12.2
+
 
 # Source
 
