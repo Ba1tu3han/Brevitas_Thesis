@@ -4,10 +4,9 @@
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader  #  wraps an iterable around the Dataset
-from torchvision import datasets  #  stores the samples and their corresponding labels
-from torchvision.transforms import ToTensor #  visual dataset
-
+from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
+from torchvision import datasets  # stores the samples and their corresponding labels
+from torchvision.transforms import ToTensor  # visual dataset
 
 from torch.nn import Module
 import torch.nn.functional as F
@@ -23,7 +22,6 @@ training_data = datasets.FashionMNIST(
     transform=ToTensor(),
 )
 
-
 #  DOWNLOAD TEST DATA FROM OPEN DATASETS
 
 test_data = datasets.FashionMNIST(
@@ -32,8 +30,6 @@ test_data = datasets.FashionMNIST(
     download=True,
     transform=ToTensor(),
 )
-
-
 
 #  CREATE DATA LOADERS
 
@@ -45,7 +41,6 @@ for X, y in test_dataloader:
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
 
-
 #  DEVICE CHECK FOR TRAINING
 
 device = (
@@ -56,36 +51,38 @@ device = (
     else "cpu"
 )
 print(f"Using {device} device")
-
-
+----------------------------------------------------------------------------------------------------
 #  DEFINING A MODEL
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(28*28, 512),
-            nn.ReLU(),
-            nn.Linear(512, 512),
-            nn.ReLU(),
-            nn.Linear(512, 10)
-        )
 
-    def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
+from mobilenetv1 import quant_mobilenet_v1
 
-model = NeuralNetwork().to(device)
+#  Bit-Width Configuration
+
+config = {
+    'QUANT': {
+        'WEIGHT_BIT_WIDTH': 4,
+        'ACT_BIT_WIDTH': 4,
+        'IN_BIT_WIDTH': 4,
+    },
+    'MODEL': {
+        'NUM_CLASSES': 10,
+        'IN_CHANNELS': 1,  # Adjusted to match MNIST dataset
+    }
+}
+
+# Instantiate the FC model with extracted parameters
+model = quant_mobilenet_v1(config)
+
+model = model().to(device)  # moving the model to the device
 print(model)
-
-
+--------------------------------------------------------------------------------
 #  OPTIMIZING THE MODEL PARAMETERS
 
-loss_fn = nn.CrossEntropyLoss() # loss function
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-3) # optimizer
+loss_fn = nn.CrossEntropyLoss()  # loss function
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)  # optimizer
 
-def train(dataloader, model, loss_fn, optimizer): # training function
+
+def train(dataloader, model, loss_fn, optimizer):  # training function
     size = len(dataloader.dataset)
     model.train()
     for batch, (X, y) in enumerate(dataloader):
@@ -104,22 +101,8 @@ def train(dataloader, model, loss_fn, optimizer): # training function
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
-    test_loss, correct = 0, 0
-    with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-    test_loss /= num_batches
-    correct /= size
-    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
-def test(dataloader, model, loss_fn): # testing function
+def test(dataloader, model, loss_fn):  # testing function
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
@@ -144,18 +127,15 @@ for t in range(epochs):
     test(test_dataloader, model, loss_fn)
 print("Done!")
 
-
 #  SAVING THE MODEL
 
 torch.save(model.state_dict(), "model.pth")
 print("Saved PyTorch Model State to model.pth")
 
-
 #  LOADING A MODEL
 
-model = NeuralNetwork().to(device)
+model = quant_mobilenet_v1(cfg).to(device)
 model.load_state_dict(torch.load("model.pth"))
-
 
 #  EVALUATING THE MODEL
 
