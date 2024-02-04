@@ -1,5 +1,7 @@
 'WEIGHT_BIT_WIDTH': 1,
+
 'ACT_BIT_WIDTH': 1,
+
 'IN_BIT_WIDTH': 1,
 
 For binary quantized models (W1A1)
