@@ -51,14 +51,13 @@ device = (
     else "cpu"
 )
 print(f"Using {device} device")
-----------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------
 #  DEFINING A MODEL
 
 from mobilenetv1 import quant_mobilenet_v1
 
-#  Bit-Width Configuration
-
-config = {
+config = {  #  Bit-Width Configuration
     'QUANT': {
         'WEIGHT_BIT_WIDTH': 4,
         'ACT_BIT_WIDTH': 4,
@@ -70,12 +69,11 @@ config = {
     }
 }
 
-# Instantiate the FC model with extracted parameters
 model = quant_mobilenet_v1(config)
 
 model = model().to(device)  # moving the model to the device
 print(model)
---------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 #  OPTIMIZING THE MODEL PARAMETERS
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
