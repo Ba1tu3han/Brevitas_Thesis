@@ -14,8 +14,8 @@ import brevitas.nn as qnn
 
 #  DOWNLOAD TRAINING DATA FROM OPEN DATASETS
 
-batch_size = 64
-training_data = datasets.FashionMNIST(
+batch_size = 32
+training_data = datasets.MNIST(
     root="data",
     train=True,
     download=True,
@@ -24,7 +24,7 @@ training_data = datasets.FashionMNIST(
 
 #  DOWNLOAD TEST DATA FROM OPEN DATASETS
 
-test_data = datasets.FashionMNIST(
+test_data = datasets.MNIST(
     root="data",
     train=False,
     download=True,
@@ -36,7 +36,7 @@ test_data = datasets.FashionMNIST(
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
 
-for X, y in test_dataloader:
+for X, y in train_dataloader:
     print(f"Shape of X [N, C, H, W]: {X.shape}")
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
@@ -55,30 +55,19 @@ print(f"Using {device} device")
 #----------------------------------------------------------------------------------------------------
 #  DEFINING A MODEL
 
-from mobilenetv1 import quant_mobilenet_v1
+from CNV import cnv
 
-config = {  #  Bit-Width Configuration
-    'QUANT': {
-        'WEIGHT_BIT_WIDTH': 4,
-        'ACT_BIT_WIDTH': 4,
-        'IN_BIT_WIDTH': 4,
-    },
-    'MODEL': {
-        'NUM_CLASSES': 10,
-        'IN_CHANNELS': 1,  # Adjusted to match MNIST dataset
-    }
-}
+config = "skip"
+model = cnv(config)
 
-model = quant_mobilenet_v1(config)
-
-model = model().to(device)  # moving the model to the device
+model = model.to(device)  # moving the model to the device
 print(model)
 #--------------------------------------------------------------------------------
 #  OPTIMIZING THE MODEL PARAMETERS
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)  # optimizer
-
+# ADAM can be used instead of SGD
 
 def train(dataloader, model, loss_fn, optimizer):  # training function
     size = len(dataloader.dataset)
@@ -132,12 +121,12 @@ print("Saved PyTorch Model State to model.pth")
 
 #  LOADING A MODEL
 
-model = quant_mobilenet_v1(cfg).to(device)
+model = cnv(config).to(device)
 model.load_state_dict(torch.load("model.pth"))
 
 #  EVALUATING THE MODEL
 
-classes = [
+classes = [ #  can be deleted
     "T-shirt/top",
     "Trouser",
     "Pullover",
@@ -153,7 +142,7 @@ classes = [
 model.eval()
 x, y = test_data[0][0], test_data[0][1]
 with torch.no_grad():
-    x = x.to(device)
+    x = x.reshape((1,)+tuple(x.shape)).to(device)
     pred = model(x)
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')

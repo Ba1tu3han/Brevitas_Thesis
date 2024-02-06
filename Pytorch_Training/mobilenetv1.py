@@ -203,10 +203,11 @@ def quant_mobilenet_v1(cfg):
     # width_scale = float(cfg.get('MODEL', 'WIDTH_SCALE'))  #  original
     width_scale = 1.0
 
-    # bit_width = cfg.getint('QUANT', 'BIT_WIDTH') #  original
-    bit_width = 4.0
+    #bit_width = cfg.getint('QUANT', 'BIT_WIDTH') #  original
+    bit_width = 4
 
-    round_avgpool = cfg.getboolean('QUANT', 'ROUND_AVG_POOL')
+    #round_avgpool = cfg.getboolean('QUANT', 'ROUND_AVG_POOL')
+    round_avgpool = False
 
     if width_scale != 1.0:
         channels = [[int(cij * width_scale) for cij in ci] for ci in channels]
