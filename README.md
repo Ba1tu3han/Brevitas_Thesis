@@ -1,3 +1,8 @@
+# Goal
+
+Binary and 4 bit-width quantization-aware-training (QAT) a custom neural-network model. Output of the process ONNX file is used as input file of FINN compiler.
+
+
 # Brevitas
 
 Brevitas is a PyTorch library for neural network quantization, with support for both post-training quantization (PTQ) and quantization-aware training (QAT).
