@@ -121,7 +121,7 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 6
+epochs = 1
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
@@ -135,6 +135,7 @@ print("Saved PyTorch Model State to model.pth")
 
 
 # EXPORT QONNX
+# opset version must be compatible with FINN compiler. Therefor, it is 17.
 
 from brevitas.export import export_qonnx
 
