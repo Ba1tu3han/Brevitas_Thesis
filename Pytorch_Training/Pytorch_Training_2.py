@@ -56,13 +56,11 @@ for X, y in train_dataloader:
 
 # IMAGE INFO
 N, n_channel, shape_y, shape_x = X.shape
-# shape_x, shape_y = test_data[0][0].shape
-# n_channel = 3
+print('data info', N, n_channel, shape_y, shape_x)
 
 
 #  RESHAPE IMAGES
 # use opencv
-
 
 
 #  DEVICE CHECK FOR TRAINING
@@ -82,10 +80,10 @@ print(f"Using {device} device")
 from CNV import cnv
 
 config = "skip"
-model = cnv(config)
+model = cnv(n_channel=n_channel)
 
 model = model.to(device)  # moving the model to the device
-print(model)
+# print(model)
 #--------------------------------------------------------------------------------
 #  OPTIMIZING THE MODEL PARAMETERS
 
@@ -131,7 +129,7 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 1
+epochs = 20
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
@@ -167,7 +165,7 @@ show_netron("./QONNX_CNV.onnx", 8082)
 
 #  LOADING A MODEL
 
-model = cnv(config).to(device)
+model = cnv(n_channel=n_channel).to(device)
 model.load_state_dict(torch.load("model.pth"))
 
 
