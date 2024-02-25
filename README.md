@@ -8,7 +8,7 @@ Binary and 4 bit-width quantization-aware-training (QAT) a custom neural-network
 Brevitas is a PyTorch library for neural network quantization, with support for both post-training quantization (PTQ) and quantization-aware training (QAT).
 
 # Software Version
-Brevitas: 0.10.0 (tag:TBD)
+Brevitas: 0.10.2 (tag:TBD)
 
 Ubuntu: 20.04
 
