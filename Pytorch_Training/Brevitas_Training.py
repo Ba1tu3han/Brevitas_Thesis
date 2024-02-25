@@ -1,21 +1,40 @@
 #  SOURCE: https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
 
+#   SUMMARY
+# Model:        Brevitas CNV
+# Dataset:      CIFAR10
+# Quantization: QAT
+# Export:       QONNX
+
 #  LIBRARIES
 
 import torch
 from torch import nn
 from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
 from torchvision import datasets  # stores the samples and their corresponding labels
-from torchvision.transforms import ToTensor  # visual dataset
+from torchvision.transforms import Compose, Resize, ToTensor  # visual dataset
 
 from torch.nn import Module
 import torch.nn.functional as F
 import brevitas.nn as qnn
 
 #  DOWNLOAD TRAINING DATA FROM OPEN DATASETS
+"""
+shape_x = 64
+shape_y = 64
+
+train_compose = Compose([
+    Resize((shape_x, shape_y)),
+    ToTensor()
+])
+test_compose = Compose([
+    Resize((shape_x, shape_y)),
+    ToTensor()
+])
+"""
 
 batch_size = 32
-training_data = datasets.MNIST(
+training_data = datasets.CIFAR10(
     root="data",
     train=True,
     download=True,
@@ -24,7 +43,7 @@ training_data = datasets.MNIST(
 
 #  DOWNLOAD TEST DATA FROM OPEN DATASETS
 
-test_data = datasets.MNIST(
+test_data = datasets.CIFAR10(
     root="data",
     train=False,
     download=True,
@@ -40,6 +59,15 @@ for X, y in train_dataloader:
     print(f"Shape of X [N, C, H, W]: {X.shape}")
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
+
+# IMAGE INFO
+N, n_channel, shape_y, shape_x = X.shape
+print('data info', N, n_channel, shape_y, shape_x)
+
+
+#  RESHAPE IMAGES
+# use opencv
+
 
 #  DEVICE CHECK FOR TRAINING
 
@@ -58,10 +86,10 @@ print(f"Using {device} device")
 from CNV import cnv
 
 config = "skip"
-model = cnv(config)
+model = cnv(n_channel=n_channel)
 
 model = model.to(device)  # moving the model to the device
-print(model)
+# print(model)
 #--------------------------------------------------------------------------------
 #  OPTIMIZING THE MODEL PARAMETERS
 
@@ -107,7 +135,7 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 5
+epochs = 6
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
@@ -119,24 +147,47 @@ print("Done!")
 torch.save(model.state_dict(), "model.pth")
 print("Saved PyTorch Model State to model.pth")
 
+
+# EXPORT QONNX
+
+from brevitas.export import export_qonnx
+
+input_tensor = torch.randn(batch_size, n_channel, shape_x, shape_y).to(device)
+export_qonnx(model, input_tensor, export_path='QONNX_CNV.onnx')
+
+
+# VISUALIZATION
+
+import netron
+import time
+from IPython.display import IFrame
+def show_netron(model_path, port):
+    time.sleep(3.)
+    netron.start(model_path, address=("localhost", port), browse=False)
+    return IFrame(src=f"http://localhost:{port}/", width="100%", height=400)
+
+show_netron("./QONNX_CNV.onnx", 8082)
+
+
 #  LOADING A MODEL
 
-model = cnv(config).to(device)
+model = cnv(n_channel=n_channel).to(device)
 model.load_state_dict(torch.load("model.pth"))
+
 
 #  EVALUATING THE MODEL
 
 classes = [ #  can be deleted
-    "T-shirt/top",
-    "Trouser",
-    "Pullover",
-    "Dress",
-    "Coat",
-    "Sandal",
-    "Shirt",
-    "Sneaker",
-    "Bag",
-    "Ankle boot",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
 ]
 
 model.eval()
@@ -146,3 +197,5 @@ with torch.no_grad():
     pred = model(x)
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
+
+
