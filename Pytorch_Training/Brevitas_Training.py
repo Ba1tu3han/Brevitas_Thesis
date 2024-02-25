@@ -5,6 +5,7 @@
 # Dataset:      CIFAR10
 # Quantization: QAT
 # Export:       QONNX
+# Bitwidth:     W4A4
 
 #  LIBRARIES
 
