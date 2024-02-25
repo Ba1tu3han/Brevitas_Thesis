@@ -19,20 +19,7 @@ from torch.nn import Module
 import torch.nn.functional as F
 import brevitas.nn as qnn
 
-#  DOWNLOAD TRAINING DATA FROM OPEN DATASETS
-"""
-shape_x = 64
-shape_y = 64
-
-train_compose = Compose([
-    Resize((shape_x, shape_y)),
-    ToTensor()
-])
-test_compose = Compose([
-    Resize((shape_x, shape_y)),
-    ToTensor()
-])
-"""
+#  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 
 batch_size = 32
 training_data = datasets.CIFAR10(
@@ -41,8 +28,6 @@ training_data = datasets.CIFAR10(
     download=True,
     transform=ToTensor(),
 )
-
-#  DOWNLOAD TEST DATA FROM OPEN DATASETS
 
 test_data = datasets.CIFAR10(
     root="data",
