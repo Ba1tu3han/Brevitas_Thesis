@@ -1,11 +1,11 @@
 #  SOURCE: https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
 
 #   SUMMARY
-# Model:        Brevitas CNV
-# Dataset:      CIFAR10
-# Quantization: QAT
-# Export:       QONNX
-# Bitwidth:     W4A4
+# Model:            Brevitas CNV
+# Dataset:          CIFAR10
+# Quantization:     QAT
+# Export Format:    QONNX
+# Bit Width:         W1A1
 
 #  LIBRARIES
 
@@ -15,9 +15,13 @@ from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
 from torchvision import datasets  # stores the samples and their corresponding labels
 from torchvision.transforms import Compose, Resize, ToTensor  # visual dataset
 
+import time
+
 from torch.nn import Module
 import torch.nn.functional as F
 import brevitas.nn as qnn
+
+# t_start = time()
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 
@@ -66,7 +70,6 @@ device = (
 )
 print(f"Using {device} device")
 
-#----------------------------------------------------------------------------------------------------
 #  DEFINING A MODEL
 
 from CNV import cnv
@@ -76,12 +79,13 @@ model = cnv(n_channel=n_channel)
 
 model = model.to(device)  # moving the model to the device
 # print(model)
-#--------------------------------------------------------------------------------
+
 #  OPTIMIZING THE MODEL PARAMETERS
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)  # optimizer
-# ADAM can be used instead of SGD
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)  # optimizer
+# Plot it and decide the learning rate
+# learning rate finder for pytorch
 
 def train(dataloader, model, loss_fn, optimizer):  # training function
     size = len(dataloader.dataset)
@@ -121,7 +125,7 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 2
+epochs = 1
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
