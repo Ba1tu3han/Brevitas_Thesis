@@ -36,7 +36,7 @@ Directories are followed respectively and each step has variants.
 
 3-Custom 
 
-# Big Picture Brevitas-FINN-FPGA
+# Big Picture of Brevitas-FINN-FPGA
 
 ![General Diagram 28-2-2024 drawio](https://github.com/Ba1tu3han/Brevitas_Thesis/assets/29502318/0e7366da-9970-4caf-b2cf-047b0399774a)
 
