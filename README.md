@@ -38,7 +38,8 @@ Directories are followed respectively and each step has variants.
 
 # Big Picture Brevitas-FINN-FPGA
 
-![General Diagram2 drawio](https://github.com/Ba1tu3han/Brevitas_Thesis/assets/29502318/528d0112-5921-4df7-b393-750e1c24635e)
+![General Diagram 28-2-2024 drawio](https://github.com/Ba1tu3han/Brevitas_Thesis/assets/29502318/0e7366da-9970-4caf-b2cf-047b0399774a)
+
 
 
 
