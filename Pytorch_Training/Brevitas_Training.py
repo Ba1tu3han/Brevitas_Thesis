@@ -121,7 +121,7 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 1
+epochs = 2
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
@@ -139,7 +139,8 @@ print("Saved PyTorch Model State to model.pth")
 
 from brevitas.export import export_qonnx
 
-input_tensor = torch.randn(batch_size, n_channel, shape_x, shape_y).to(device)
+#input_tensor = torch.randn(batch_size, n_channel, shape_x, shape_y).to(device)
+input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device)
 export_qonnx(model, input_tensor, export_path='QONNX_CNV.onnx')
 
 
