@@ -5,7 +5,7 @@
 # Dataset:          CIFAR10
 # Quantization:     QAT
 # Export Format:    QONNX
-# Bit Width:         W1A1
+# Bit Width:        W1A1
 
 #  LIBRARIES
 
@@ -21,7 +21,7 @@ from torch.nn import Module
 import torch.nn.functional as F
 import brevitas.nn as qnn
 
-# t_start = time()
+process_start_time = time.time()
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 
@@ -125,7 +125,7 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 1
+epochs = 100
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
@@ -189,5 +189,11 @@ with torch.no_grad():
     pred = model(x)
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
+
+
+process_end_time = time.time()
+time_diff = process_end_time - process_start_time
+print("Process Time [min]: " + str(time_diff/60))
+print("Number of Epoch: " + str(epochs))
 
 
