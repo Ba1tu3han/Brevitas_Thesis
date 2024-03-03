@@ -139,10 +139,22 @@ for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
     accuracy_list, loss_list = test(test_dataloader, model, loss_fn)
-    epoch_accuracies.append(accuracy_list)
-    epoch_losses.append(loss_list)
+
+    epoch_accuracies.append(accuracy_list) # storing all accuracies
+    epoch_losses.append(loss_list) # storing all losses
+    accuracy_delta = epoch_accuracies[t] - epoch_accuracies[t - 1] # current pace (change) of accuracy
+    loss_delta = epoch_losses[t] - epoch_losses[t - 1]  # current pace (change) of loss
     print(epoch_accuracies)
     print(epoch_losses)
+    print(accuracy_delta)
+    print(loss_delta)
+
+    stop_delta = 0.1
+    if abs(accuracy_delta) < stop_delta: # stopping the training loop due to no improvement
+
+        break
+
+
 print("Done!")
 
 
