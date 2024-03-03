@@ -151,11 +151,11 @@ for t in range(epochs):
     print("accuracy_delta: " + str(accuracy_delta))
     #print("loss_delta: " + str(loss_delta))
 
-    stop_delta = 0.2
+    stop_delta = 0.15
     if abs(accuracy_delta) < stop_delta and t > 2: # stopping the training loop due to no improvement in accuracy. First 2 steps are ignored.
 
         stop_delta_counter += 1
-        if stop_delta_counter == 2: # two times accuracy_delta is less than stop_delta
+        if stop_delta_counter == 3: # two times accuracy_delta is less than stop_delta
             print("The training loop is stopped due to no improvement in accuracy. It is smaller than " + str(stop_delta))
             print("Number of epoch: " + str(t))
             break
