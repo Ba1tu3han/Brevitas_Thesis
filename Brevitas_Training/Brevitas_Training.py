@@ -83,7 +83,7 @@ model = model.to(device)  # moving the model to the device
 #  OPTIMIZING THE MODEL PARAMETERS
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)  # optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr = 5e-3)  # optimizer
 # Plot it and decide the learning rate
 # learning rate finder for pytorch
 
@@ -107,7 +107,7 @@ def train(dataloader, model, loss_fn, optimizer):  # training function
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-def test(dataloader, model, loss_fn):  # testing function
+def test(dataloader, model, loss_fn):  # testing function, does not used any more
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
@@ -120,17 +120,18 @@ def test(dataloader, model, loss_fn):  # testing function
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
-    print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    print(f"Test Error: \n Accuracy (Top1): {(100 * correct):>0.2f}%, Avg loss: {test_loss:>8f} \n")
 
 
 # TRAINING
 
-epochs = 100
+epochs = 30
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model, loss_fn)
 print("Done!")
+
 
 #  SAVING THE MODEL
 
