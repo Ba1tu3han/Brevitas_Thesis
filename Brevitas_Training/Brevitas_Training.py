@@ -107,7 +107,7 @@ def train(dataloader, model, loss_fn, optimizer):  # training function
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-def test(dataloader, model, loss_fn):  # testing function, does not used any more
+def test(dataloader, model, loss_fn):  # testing function
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
@@ -190,7 +190,6 @@ with torch.no_grad():
     pred = model(x)
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
-
 
 process_end_time = time.time()
 time_diff = process_end_time - process_start_time
