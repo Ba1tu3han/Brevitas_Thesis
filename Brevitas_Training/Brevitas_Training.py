@@ -130,10 +130,11 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 30
+epochs = 30 # upper limit of number of epoch
 
 epoch_accuracies = [] # lists to store accuracy and loss for each epoch
 epoch_losses = []
+stop_delta_counter = 0 # count the number of accuracy_delta which is less than stop_delta
 
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
@@ -142,20 +143,24 @@ for t in range(epochs):
 
     epoch_accuracies.append(accuracy_list) # storing all accuracies
     epoch_losses.append(loss_list) # storing all losses
+
     accuracy_delta = epoch_accuracies[t] - epoch_accuracies[t - 1] # current pace (change) of accuracy
     loss_delta = epoch_losses[t] - epoch_losses[t - 1]  # current pace (change) of loss
-    print(epoch_accuracies)
-    print(epoch_losses)
-    print(accuracy_delta)
-    print(loss_delta)
+    #print("epoch_accuracies: " + str(epoch_accuracies))
+    #print("epoch_losses: " + str(epoch_losses))
+    print("accuracy_delta: " + str(accuracy_delta))
+    #print("loss_delta: " + str(loss_delta))
 
-    stop_delta = 0.1
-    if abs(accuracy_delta) < stop_delta: # stopping the training loop due to no improvement
+    stop_delta = 0.2
+    if abs(accuracy_delta) < stop_delta and t > 2: # stopping the training loop due to no improvement in accuracy. First 2 steps are ignored.
 
-        break
+        stop_delta_counter += 1
+        if stop_delta_counter == 2: # two times accuracy_delta is less than stop_delta
+            print("The training loop is stopped due to no improvement in accuracy. It is smaller than " + str(stop_delta))
+            print("Number of epoch: " + str(t))
+            break
 
-
-print("Done!")
+print("Training is Done!")
 
 
 #  SAVING THE MODEL
@@ -219,6 +224,6 @@ with torch.no_grad():
 process_end_time = time.time()
 time_diff = process_end_time - process_start_time
 print("Process Time [min]: " + str(time_diff/60))
-print("Number of Epoch: " + str(epochs))
+#print("Number of Epoch: " + str(epochs))
 
 
