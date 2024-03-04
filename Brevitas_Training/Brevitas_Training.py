@@ -21,8 +21,11 @@ from torch.nn import Module
 import torch.nn.functional as F
 import brevitas.nn as qnn
 
+import matplotlib.pyplot as plt # to plot graphs
+import numpy as np
 
 process_start_time = time.time()
+
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 
@@ -40,6 +43,7 @@ test_data = datasets.CIFAR10(
     download=True,
     transform=ToTensor(),
 )
+
 
 #  CREATE DATA LOADERS
 
@@ -71,6 +75,7 @@ device = (
 )
 print(f"Using {device} device")
 
+
 #  DEFINING A MODEL
 
 from CNV import cnv
@@ -80,6 +85,7 @@ model = cnv(n_channel=n_channel)
 
 model = model.to(device)  # moving the model to the device
 # print(model)
+
 
 #  OPTIMIZING THE MODEL PARAMETERS
 
@@ -130,12 +136,12 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 30 # upper limit of number of epoch
+epochs = 100 # upper limit of number of epoch
 
 epoch_accuracies = [] # lists to store accuracy and loss for each epoch
 epoch_losses = []
 stop_delta_counter = 0 # count the number of accuracy_delta which is less than stop_delta
-
+model_trained = False # # flag for plotting the graph
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
@@ -148,10 +154,12 @@ for t in range(epochs):
     loss_delta = epoch_losses[t] - epoch_losses[t - 1]  # current pace (change) of loss
     #print("epoch_accuracies: " + str(epoch_accuracies))
     #print("epoch_losses: " + str(epoch_losses))
-    print("accuracy_delta: " + str(accuracy_delta))
+    #print("accuracy_delta: " + str(accuracy_delta))
     #print("loss_delta: " + str(loss_delta))
 
-    stop_delta = 0.15
+    model_trained = True # flag for plotting the graph
+
+    stop_delta = 0.08
     if abs(accuracy_delta) < stop_delta and t > 2: # stopping the training loop due to no improvement in accuracy. First 2 steps are ignored.
 
         stop_delta_counter += 1
@@ -160,6 +168,7 @@ for t in range(epochs):
             print("Number of epoch: " + str(t))
             break
 
+    trained_epoch = t
 print("Training is Done!")
 
 
@@ -181,6 +190,7 @@ export_qonnx(model, input_tensor, export_path='QONNX_CNV.onnx')
 
 # VISUALIZATION
 
+# ONNX Flow-Chart
 import netron
 import time
 from IPython.display import IFrame
@@ -188,8 +198,15 @@ def show_netron(model_path, port):
     time.sleep(3.)
     netron.start(model_path, address=("localhost", port), browse=False)
     return IFrame(src=f"http://localhost:{port}/", width="100%", height=400)
-
 show_netron("./QONNX_CNV.onnx", 8082)
+
+# Plotting Accuracy Graph
+epoch_list = [i for i in range(trained_epoch+2)] # to list epochs 1 to the end
+fig, ax = plt.subplots()
+plt.plot(epoch_list, epoch_accuracies)
+plt.ylabel('Accuracy (Top1)')
+plt.xlabel('Number of Epoch')
+plt.savefig('Accuracy_Plot.png')
 
 
 #  LOADING A MODEL
@@ -225,5 +242,3 @@ process_end_time = time.time()
 time_diff = process_end_time - process_start_time
 print("Process Time [min]: " + str(time_diff/60))
 #print("Number of Epoch: " + str(epochs))
-
-
