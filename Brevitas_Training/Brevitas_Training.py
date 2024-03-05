@@ -90,6 +90,10 @@ model = model.to(device)  # moving the model to the device
 #  OPTIMIZING THE MODEL PARAMETERS
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
+#from losses import SqrHingeLoss
+#loss_fn = SqrHingeLoss()  # loss function
+
+
 optimizer = torch.optim.Adam(model.parameters(), lr = 5e-3)  # optimizer
 # Plot it and decide the learning rate
 # learning rate finder for pytorch
@@ -136,12 +140,13 @@ def test(dataloader, model, loss_fn):  # testing function
 
 # TRAINING
 
-epochs = 100 # upper limit of number of epoch
+epochs = 30 # upper limit of number of epoch
 
 epoch_accuracies = [] # lists to store accuracy and loss for each epoch
 epoch_losses = []
 stop_delta_counter = 0 # count the number of accuracy_delta which is less than stop_delta
 model_trained = False # # flag for plotting the graph
+
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
