@@ -10,7 +10,8 @@ class Trainer:
                  device,
                  train_dataloader,
                  val_dataloader=None,
-                 test_dataloader=None):
+                 test_dataloader=None,
+                 sample_size=None):
         self.model = model
         self.optimizer = optimizer
         self.loss_fn = loss_fn
@@ -19,9 +20,13 @@ class Trainer:
         self.val_dataloader = val_dataloader
         self.test_dataloader = test_dataloader
         self.loss_fn = loss_fn
+        self.sample_size = sample_size
 
     def train_one_epoch(self):  # training function
-        size = len(self.train_dataloader.dataset)
+        if self.sample_size:
+            size = min(self.sample_size, len(self.train_dataloader.dataset))
+        else:
+            size = len(self.train_dataloader.dataset)
         num_batches = len(self.train_dataloader)
         self.model.train()
 
@@ -50,7 +55,11 @@ class Trainer:
         return accuracy, train_loss
 
     def validate_one_epoch(self):
-        size = len(self.val_dataloader.dataset)
+        if self.sample_size:
+            size = min(self.sample_size, len(self.val_dataloader.dataset))
+        else:
+            size = len(self.val_dataloader.dataset)
+
         num_batches = len(self.val_dataloader)
         self.model.eval()
         val_loss, correct = 0, 0

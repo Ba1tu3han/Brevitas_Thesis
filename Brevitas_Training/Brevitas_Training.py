@@ -16,8 +16,9 @@ from torchvision import datasets  # stores the samples and their corresponding l
 from torchvision.transforms import ToTensor  # visual dataset
 
 import time
-import matplotlib.pyplot as plt # to plot graphs
+import matplotlib.pyplot as plt  # to plot graphs
 
+from losses import SqrHingeLoss
 from trainer import Trainer, EarlyStopper
 
 process_start_time = time.time()
@@ -25,7 +26,7 @@ process_start_time = time.time()
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 
-batch_size = 8
+batch_size = 32
 training_data = datasets.CIFAR10(
     root="data",
     train=True,
@@ -40,7 +41,7 @@ test_data = datasets.CIFAR10(
     transform=ToTensor(),
 )
 
-n_sample = 500
+n_sample = None
 
 #  CREATE DATA LOADERS
 train_dataloader = DataLoader(training_data, batch_size=batch_size,
@@ -102,7 +103,8 @@ trainer = Trainer(
     device=device,
     train_dataloader=train_dataloader,
     val_dataloader=test_dataloader,
-    test_dataloader=test_dataloader
+    test_dataloader=test_dataloader,
+    sample_size=n_sample
 )
 train_accuracies = []
 test_accuracies = []
