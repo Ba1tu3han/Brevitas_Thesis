@@ -22,6 +22,7 @@ from losses import SqrHingeLoss
 from trainer import Trainer, EarlyStopper
 
 process_start_time = time.time()
+print("Name of this attempt is: " + str(process_start_time))
 
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
@@ -88,14 +89,14 @@ model = model.to(device)  # moving the model to the device
 # TRAINING
 
 #  OPTIMIZING THE MODEL PARAMETERS
-# Plot it and decide the learning rate
+
 # learning rate finder for pytorch
 
 # from losses import SqrHingeLoss
 # loss_fn = SqrHingeLoss()  # loss function
 loss_fn = nn.CrossEntropyLoss()  # loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=5e-3)  # optimizer
-epochs = 10  # upper limit of number of epoch
+epochs = 1000  # upper limit of number of epoch
 trainer = Trainer(
     model=model,
     optimizer=optimizer,
@@ -111,9 +112,9 @@ test_accuracies = []
 train_losses = []
 test_losses = []
 
-min_delta = 0.02
-early_stopper = EarlyStopper(patience=3,
-                             min_delta=0.02)
+min_delta = 0.1 #0.0001
+early_stopper = EarlyStopper(patience=5,
+                             min_delta=min_delta)
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     epoch_train_accuracy, epoch_train_loss = trainer.train_one_epoch()
@@ -128,6 +129,7 @@ for t in range(epochs):
         print(f"The training loop is stopped due to no improvement in accuracy. "
               f"It is smaller than {min_delta}")
         print(f"Number of epoch: {t}")
+        break # I am not sure to use it.
 
 print("Training is Done!")
 
@@ -146,7 +148,8 @@ ax[1].set_xlabel('Number of Epoch')
 ax[1].set_ylabel('Accuracy (Top1)')
 ax[1].legend()
 
-plt.savefig('Accuracy_Loss_Plot.png')
+figure_name = "Accuracy_Loss_Plot " + str(process_start_time) + ".png"
+plt.savefig(figure_name)
 
 
 #  SAVING THE MODEL
@@ -207,5 +210,5 @@ with torch.no_grad():
 
 process_end_time = time.time()
 time_diff = process_end_time - process_start_time
-print("Process Time [min]: " + str(time_diff/60))
+print(f"Process Time [min]: {time_diff / 60:.2f}")
 #print("Number of Epoch: " + str(epochs))
