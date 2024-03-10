@@ -13,16 +13,13 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
 from torchvision import datasets  # stores the samples and their corresponding labels
-from torchvision.transforms import Compose, Resize, ToTensor  # visual dataset
+from torchvision.transforms import ToTensor  # visual dataset
 
 import time
+import matplotlib.pyplot as plt  # to plot graphs
 
-from torch.nn import Module
-import torch.nn.functional as F
-import brevitas.nn as qnn
-
-import matplotlib.pyplot as plt # to plot graphs
-import numpy as np
+from losses import SqrHingeLoss
+from trainer import Trainer, EarlyStopper
 
 process_start_time = time.time()
 
@@ -44,11 +41,13 @@ test_data = datasets.CIFAR10(
     transform=ToTensor(),
 )
 
+n_sample = None
 
 #  CREATE DATA LOADERS
-
-train_dataloader = DataLoader(training_data, batch_size=batch_size)
-test_dataloader = DataLoader(test_data, batch_size=batch_size)
+train_dataloader = DataLoader(training_data, batch_size=batch_size,
+                              sampler=torch.utils.data.RandomSampler(training_data, num_samples=n_sample))
+test_dataloader = DataLoader(test_data, batch_size=batch_size,
+                             sampler=torch.utils.data.RandomSampler(test_data, num_samples=n_sample))
 
 for X, y in train_dataloader:
     print(f"Shape of X [N, C, H, W]: {X.shape}")
@@ -69,8 +68,8 @@ print('data info', N, n_channel, shape_y, shape_x)
 device = (
     "cuda"
     if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
+    # else "mps"
+    # if torch.backends.mps.is_available()
     else "cpu"
 )
 print(f"Using {device} device")
@@ -86,99 +85,71 @@ model = cnv(n_channel=n_channel)
 model = model.to(device)  # moving the model to the device
 # print(model)
 
+# TRAINING
 
 #  OPTIMIZING THE MODEL PARAMETERS
-
-loss_fn = nn.CrossEntropyLoss()  # loss function
-#from losses import SqrHingeLoss
-#loss_fn = SqrHingeLoss()  # loss function
-
-
-optimizer = torch.optim.Adam(model.parameters(), lr = 5e-3)  # optimizer
 # Plot it and decide the learning rate
 # learning rate finder for pytorch
 
-def train(dataloader, model, loss_fn, optimizer):  # training function
-    size = len(dataloader.dataset)
-    model.train()
-    for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device)
+# from losses import SqrHingeLoss
+# loss_fn = SqrHingeLoss()  # loss function
+loss_fn = nn.CrossEntropyLoss()  # loss function
+optimizer = torch.optim.Adam(model.parameters(), lr=5e-3)  # optimizer
+epochs = 10  # upper limit of number of epoch
+trainer = Trainer(
+    model=model,
+    optimizer=optimizer,
+    loss_fn=loss_fn,
+    device=device,
+    train_dataloader=train_dataloader,
+    val_dataloader=test_dataloader,
+    test_dataloader=test_dataloader,
+    sample_size=n_sample
+)
+train_accuracies = []
+test_accuracies = []
+train_losses = []
+test_losses = []
 
-        # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
-
-        # Backpropagation
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-        if batch % 100 == 0:
-            loss, current = loss.item(), (batch + 1) * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-
-
-def test(dataloader, model, loss_fn):  # testing function
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
-    test_loss, correct = 0, 0
-
-    with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-
-    test_loss /= num_batches
-    correct /= size
-    accuracy = 100 * correct
-    print(f"Test Error: \n Accuracy (Top1): {(100 * correct):>0.2f}%, Avg loss: {test_loss:>8f} \n")
-    return accuracy, test_loss
-
-
-# TRAINING
-
-epochs = 30 # upper limit of number of epoch
-
-epoch_accuracies = [] # lists to store accuracy and loss for each epoch
-epoch_losses = []
-stop_delta_counter = 0 # count the number of accuracy_delta which is less than stop_delta
-model_trained = False # # flag for plotting the graph
-
+min_delta = 0.02
+early_stopper = EarlyStopper(patience=3,
+                             min_delta=0.02)
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
-    train(train_dataloader, model, loss_fn, optimizer)
-    accuracy_list, loss_list = test(test_dataloader, model, loss_fn)
+    epoch_train_accuracy, epoch_train_loss = trainer.train_one_epoch()
+    epoch_test_accuracy, epoch_test_loss = trainer.validate_one_epoch()
 
-    epoch_accuracies.append(accuracy_list) # storing all accuracies
-    epoch_losses.append(loss_list) # storing all losses
+    train_accuracies.append(epoch_train_accuracy)
+    test_accuracies.append(epoch_test_accuracy)
+    train_losses.append(epoch_train_loss)
+    test_losses.append(epoch_test_loss)
 
-    accuracy_delta = epoch_accuracies[t] - epoch_accuracies[t - 1] # current pace (change) of accuracy
-    loss_delta = epoch_losses[t] - epoch_losses[t - 1]  # current pace (change) of loss
-    #print("epoch_accuracies: " + str(epoch_accuracies))
-    #print("epoch_losses: " + str(epoch_losses))
-    #print("accuracy_delta: " + str(accuracy_delta))
-    #print("loss_delta: " + str(loss_delta))
+    if early_stopper.early_stop(epoch_test_loss):
+        print(f"The training loop is stopped due to no improvement in accuracy. "
+              f"It is smaller than {min_delta}")
+        print(f"Number of epoch: {t}")
 
-    model_trained = True # flag for plotting the graph
-
-    stop_delta = 0.08
-    if abs(accuracy_delta) < stop_delta and t > 2: # stopping the training loop due to no improvement in accuracy. First 2 steps are ignored.
-
-        stop_delta_counter += 1
-        if stop_delta_counter == 3: # two times accuracy_delta is less than stop_delta
-            print("The training loop is stopped due to no improvement in accuracy. It is smaller than " + str(stop_delta))
-            print("Number of epoch: " + str(t))
-            break
-
-    trained_epoch = t
 print("Training is Done!")
+
+# Plotting Accuracy Graph
+epoch_list = list(range(t + 1))  # to list epochs 1 to the end
+fig, ax = plt.subplots(2, 1)
+
+ax[0].plot(epoch_list, train_losses, label="Train Loss")
+ax[0].plot(epoch_list, test_losses, label="Validation Loss")
+ax[0].set_ylabel('Loss')
+ax[0].legend()
+
+ax[1].plot(epoch_list, train_accuracies, label="Train Accuracy")
+ax[1].plot(epoch_list, test_accuracies, label="Validation Accuracy")
+ax[1].set_xlabel('Number of Epoch')
+ax[1].set_ylabel('Accuracy (Top1)')
+ax[1].legend()
+
+plt.savefig('Accuracy_Loss_Plot.png')
 
 
 #  SAVING THE MODEL
-
 torch.save(model.state_dict(), "model.pth")
 print("Saved PyTorch Model State to model.pth")
 
@@ -204,15 +175,6 @@ def show_netron(model_path, port):
     netron.start(model_path, address=("localhost", port), browse=False)
     return IFrame(src=f"http://localhost:{port}/", width="100%", height=400)
 show_netron("./QONNX_CNV.onnx", 8082)
-
-# Plotting Accuracy Graph
-epoch_list = [i for i in range(trained_epoch+2)] # to list epochs 1 to the end
-fig, ax = plt.subplots()
-plt.plot(epoch_list, epoch_accuracies)
-plt.ylabel('Accuracy (Top1)')
-plt.xlabel('Number of Epoch')
-plt.savefig('Accuracy_Plot.png')
-
 
 #  LOADING A MODEL
 
