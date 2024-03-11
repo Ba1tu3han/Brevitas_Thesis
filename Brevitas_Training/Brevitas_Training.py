@@ -96,7 +96,7 @@ model = model.to(device)  # moving the model to the device
 # loss_fn = SqrHingeLoss()  # loss function
 loss_fn = nn.CrossEntropyLoss()  # loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=5e-3)  # optimizer
-epochs = 1000  # upper limit of number of epoch
+epochs = 1100  # upper limit of number of epoch
 trainer = Trainer(
     model=model,
     optimizer=optimizer,
@@ -112,8 +112,8 @@ test_accuracies = []
 train_losses = []
 test_losses = []
 
-min_delta = 0.1 #0.0001
-early_stopper = EarlyStopper(patience=5,
+min_delta = 0.0
+early_stopper = EarlyStopper(patience=500,
                              min_delta=min_delta)
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
@@ -127,7 +127,7 @@ for t in range(epochs):
 
     if early_stopper.early_stop(epoch_test_loss):
         print(f"The training loop is stopped due to no improvement in accuracy. "
-              f"It is smaller than {min_delta}")
+              f"It is equal to or smaller than {min_delta}")
         print(f"Number of epoch: {t}")
         break # I am not sure to use it.
 
@@ -211,4 +211,3 @@ with torch.no_grad():
 process_end_time = time.time()
 time_diff = process_end_time - process_start_time
 print(f"Process Time [min]: {time_diff / 60:.2f}")
-#print("Number of Epoch: " + str(epochs))
