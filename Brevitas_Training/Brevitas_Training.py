@@ -112,8 +112,8 @@ test_accuracies = []
 train_losses = []
 test_losses = []
 
-min_delta = 0.0
-early_stopper = EarlyStopper(patience=500,
+min_delta = 0.01
+early_stopper = EarlyStopper(patience=3,
                              min_delta=min_delta)
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
@@ -129,7 +129,7 @@ for t in range(epochs):
         print(f"The training loop is stopped due to no improvement in accuracy. "
               f"It is equal to or smaller than {min_delta}")
         print(f"Number of epoch: {t}")
-        break # I am not sure to use it.
+        break
 
 print("Training is Done!")
 
