@@ -96,7 +96,7 @@ model = model.to(device)  # moving the model to the device
 # loss_fn = SqrHingeLoss()  # loss function
 loss_fn = nn.CrossEntropyLoss()  # loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=5e-3)  # optimizer
-epochs = 1100  # upper limit of number of epoch
+epochs = 1010  # upper limit of number of epoch
 trainer = Trainer(
     model=model,
     optimizer=optimizer,
