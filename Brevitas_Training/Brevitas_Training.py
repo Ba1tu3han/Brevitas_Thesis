@@ -21,6 +21,9 @@ import matplotlib.pyplot as plt  # to plot graphs
 from losses import SqrHingeLoss
 from trainer import Trainer, EarlyStopper
 
+import cv2
+import numpy as np
+
 process_start_time = time.time()
 print("Name of this attempt is: " + str(process_start_time))
 
@@ -95,8 +98,8 @@ model = model.to(device)  # moving the model to the device
 # from losses import SqrHingeLoss
 # loss_fn = SqrHingeLoss()  # loss function
 loss_fn = nn.CrossEntropyLoss()  # loss function
-optimizer = torch.optim.Adam(model.parameters(), lr=5e-3)  # optimizer
-epochs = 1010  # upper limit of number of epoch
+optimizer = torch.optim.Adam(model.parameters(), lr=4e-3)  # optimizer
+epochs = 100  # upper limit of number of epoch
 trainer = Trainer(
     model=model,
     optimizer=optimizer,
@@ -187,7 +190,7 @@ model.load_state_dict(torch.load("model.pth"))
 
 #  EVALUATING THE MODEL
 
-classes = [ #  can be deleted
+classes = [
     "0",
     "1",
     "2",
@@ -208,6 +211,15 @@ with torch.no_grad():
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
 
-process_end_time = time.time()
+
+# Showing the test image
+image_np = test_data[0][0].numpy()
+image_np = image_np.transpose((1, 2, 0))
+image_np = (image_np * 255).astype(np.uint8)
+cv2.imshow("Image", image_np)
+cv2.waitKey(0)
+
+
+process_end_time = time.time() # Printing the processing time
 time_diff = process_end_time - process_start_time
 print(f"Process Time [min]: {time_diff / 60:.2f}")
