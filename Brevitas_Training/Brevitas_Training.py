@@ -211,6 +211,9 @@ with torch.no_grad():
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
 
+process_end_time = time.time() # Printing the processing time
+time_diff = process_end_time - process_start_time
+print(f"Process Time [min]: {time_diff / 60:.2f}")
 
 # Showing the test image
 image_np = test_data[0][0].numpy()
@@ -220,6 +223,3 @@ cv2.imshow("Image", image_np)
 cv2.waitKey(0)
 
 
-process_end_time = time.time() # Printing the processing time
-time_diff = process_end_time - process_start_time
-print(f"Process Time [min]: {time_diff / 60:.2f}")
