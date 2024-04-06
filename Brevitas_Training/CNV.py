@@ -105,9 +105,9 @@ class CNV(Module):
 
 def cnv(n_channel):
     #weight_bit_width = cfg.getint('QUANT', 'WEIGHT_BIT_WIDTH')
-    weight_bit_width = 4
+    weight_bit_width = 1
     #act_bit_width = cfg.getint('QUANT', 'ACT_BIT_WIDTH')
-    act_bit_width = 4
+    act_bit_width = 1
     #in_bit_width = cfg.getint('QUANT', 'IN_BIT_WIDTH')
     in_bit_width = 8
     #num_classes = cfg.getint('MODEL', 'NUM_CLASSES')

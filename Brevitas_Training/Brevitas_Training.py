@@ -115,7 +115,7 @@ test_accuracies = []
 train_losses = []
 test_losses = []
 
-min_delta = 0.01
+min_delta = 0.001
 early_stopper = EarlyStopper(patience=3,
                              min_delta=min_delta)
 for t in range(epochs):
