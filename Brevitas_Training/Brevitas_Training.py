@@ -99,7 +99,7 @@ model = model.to(device)  # moving the model to the device
 # loss_fn = SqrHingeLoss()  # loss function
 loss_fn = nn.CrossEntropyLoss()  # loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=4e-3)  # optimizer
-epochs = 100  # upper limit of number of epoch
+epochs = 2  # upper limit of number of epoch
 trainer = Trainer(
     model=model,
     optimizer=optimizer,
@@ -215,11 +215,12 @@ process_end_time = time.time() # Printing the processing time
 time_diff = process_end_time - process_start_time
 print(f"Process Time [min]: {time_diff / 60:.2f}")
 
+'''
 # Showing the test image
 image_np = test_data[0][0].numpy()
 image_np = image_np.transpose((1, 2, 0))
 image_np = (image_np * 255).astype(np.uint8)
 cv2.imshow("Image", image_np)
 cv2.waitKey(0)
-
+'''
 
