@@ -94,7 +94,7 @@ model = model.to(device)  # moving the model to the device
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
 lr = 4e-3
-epochs = 2  # upper limit of number of epoch
+epochs = 2 # upper limit of number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -113,8 +113,9 @@ test_losses = []
 
 min_delta = 0.001
 patience = 3
-early_stopper = EarlyStopper(patience=patience,
-                             min_delta=min_delta)
+early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
+early_stopper_flag = False # for the Brevitas Report
+
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     epoch_train_accuracy, epoch_train_loss = trainer.train_one_epoch()
@@ -129,6 +130,7 @@ for t in range(epochs):
         print(f"The training loop is stopped due to no improvement in accuracy. "
               f"It is equal to or smaller than {min_delta}")
         print(f"Number of epoch: {t}")
+        early_stopper_flag = True # for the Brevitas Report
         break
 
 print("Training is Done!")
@@ -204,19 +206,21 @@ Batch Size: {batch_size}
 Number of Class: {num_classes}
 
 Model: {type(model).__name__}
-Number of Epoch: {epochs}
-Optimizer: {type(optimizer).__name__}
 Number of Layer: {len(list(model.parameters()))}
 Number of Parameter: {sum(p.numel() for p in model.parameters() if p.requires_grad)}
+
+Number of Epoch: {epochs}
+Optimizer: {type(optimizer).__name__}
 Learning Rate: {lr}
+Early Stopper: {early_stopper_flag}
 Early Stopper Min Delta: {min_delta}
 Early Stopper Patience: {patience}
-ONNX File Size: {formatted_file_size} MB
 
 Quantization: {weight_bit_width}W{act_bit_width}A
 Input Bit Width: {in_bit_width}
 
 Device = {device}
+ONNX File Size: {formatted_file_size} MB
 """
 
 export_brevitas_report(report, process_start_time)
