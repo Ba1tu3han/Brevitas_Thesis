@@ -107,15 +107,15 @@ class CNV(Module):
         return x
 
 
-def cnv(n_channel):
+def cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes):
     #weight_bit_width = cfg.getint('QUANT', 'WEIGHT_BIT_WIDTH')
-    weight_bit_width = 1
+    #weight_bit_width = 1/2/4/8
     #act_bit_width = cfg.getint('QUANT', 'ACT_BIT_WIDTH')
-    act_bit_width = 1
+    #act_bit_width =  1/2/4/8
     #in_bit_width = cfg.getint('QUANT', 'IN_BIT_WIDTH')
-    in_bit_width = 8
+    #in_bit_width = 8
     #num_classes = cfg.getint('MODEL', 'NUM_CLASSES')
-    num_classes = 10
+    #num_classes = 10
     #in_channels = cfg.getint('MODEL', 'IN_CHANNELS')
     in_channels = n_channel # grayscale = 1, RGB color = 3
     net = CNV(

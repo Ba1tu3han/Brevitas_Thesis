@@ -1,31 +1,32 @@
-#   SUMMARY
+# SUMMARY
 # Model:            Brevitas CNV
 # Dataset:          CIFAR10
 # Quantization:     QAT
 # Bit Width:        W1A1
 # Export Format:    QONNX
 
-#  LIBRARIES
-
+# LIBRARIES
 import torch
 from torch import nn
 from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
 from torchvision import datasets  # stores the samples and their corresponding labels
 from torchvision.transforms import ToTensor  # visual dataset
 import time
-import matplotlib.pyplot as plt  # to plot graphs
-from losses import SqrHingeLoss
-from trainer import Trainer, EarlyStopper
-import cv2
-import numpy as np
 import sys
+import netron
+from IPython.display import IFrame
+from brevitas.export import export_qonnx # for exporting ONNX
 
+from CNV import cnv
+from trainer import Trainer, EarlyStopper
+from reporting import *
+
+# PROCESS TIME MEASURING
 process_start_time = time.time() # to measure whole processing time
 print("Name of this attempt is: " + str(process_start_time))
 
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
-
 batch_size = 32
 n_sample = None
 
@@ -64,7 +65,6 @@ print('data info', N, n_channel, shape_y, shape_x)
 
 
 #  DEVICE CHECK FOR TRAINING
-
 device = (
     "cuda"
     if torch.cuda.is_available()
@@ -74,14 +74,16 @@ print(f"Using {device} device")
 if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
+#QUANTIZATION CONFIGURATION
+weight_bit_width = 1
+act_bit_width = 1
+in_bit_width = 8
+num_classes = 10
 
 #  DEFINING A MODEL
-
-from CNV import cnv
-
 config = "skip"
 
-model = cnv(n_channel=n_channel)
+model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
 model = model.to(device)  # moving the model to the device
 
 
@@ -131,23 +133,8 @@ for t in range(epochs):
 
 print("Training is Done!")
 
-# Plotting Accuracy Graph
-epoch_list = list(range(t + 1))  # to list epochs 1 to the end
-fig, ax = plt.subplots(2, 1)
-
-ax[0].plot(epoch_list, train_losses, label="Train Loss")
-ax[0].plot(epoch_list, test_losses, label="Validation Loss")
-ax[0].set_ylabel('Loss')
-ax[0].legend()
-
-ax[1].plot(epoch_list, train_accuracies, label="Train Accuracy")
-ax[1].plot(epoch_list, test_accuracies, label="Validation Accuracy")
-ax[1].set_xlabel('Number of Epoch')
-ax[1].set_ylabel('Accuracy (Top1)')
-ax[1].legend()
-
-figure_name = "Accuracy_Loss_Plot " + str(process_start_time) + ".png"
-plt.savefig(figure_name)
+# PLOTTING ACCURACY GRAPH
+export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, epochs-1)
 
 
 #  SAVING THE MODEL
@@ -156,35 +143,24 @@ print("Saved PyTorch Model State to model.pth")
 
 
 # EXPORT QONNX
-# opset version must be compatible with FINN compiler. Therefor, it is 17.
-
-from brevitas.export import export_qonnx
-
-#input_tensor = torch.randn(batch_size, n_channel, shape_x, shape_y).to(device)
 input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device)
-export_qonnx(model, input_tensor, export_path='QONNX_CNV.onnx')
+export_path = 'QONNX_CNV.onnx'
+export_qonnx(model, input_tensor, export_path=export_path)
 
 
-# VISUALIZATION
-
-# ONNX Flow-Chart
-import netron
-import time
-from IPython.display import IFrame
+# MODEL VISUALIZATION
 def show_netron(model_path, port):
     time.sleep(3.)
     netron.start(model_path, address=("localhost", port), browse=False)
     return IFrame(src=f"http://localhost:{port}/", width="100%", height=400)
 show_netron("./QONNX_CNV.onnx", 8082)
 
-#  LOADING A MODEL
-
-model = cnv(n_channel=n_channel).to(device)
+# LOADING THE TRAINED MODEL
+model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes).to(device)
 model.load_state_dict(torch.load("model.pth"))
 
 
-#  EVALUATING THE MODEL
-
+# EVALUATING THE MODEL
 classes = [
     "0",
     "1",
@@ -211,12 +187,12 @@ time_diff = process_end_time - process_start_time
 print(f"Process Time [min]: {time_diff / 60:.2f}")
 
 # REPORT
-
-from reporting import *
+formatted_file_size = "{:.2f}".format(os.path.getsize(export_path) / (1024 * 1024)) # for ONNX File Size
 
 report = f"""Validation Accuracy: {epoch_test_accuracy :.4f}
 Validation Loss: {epoch_test_loss :.4f}%
 
+Export Path: {export_path}
 Process Time [min]: {time_diff / 60:.2f}
 
 ----------------------------------
@@ -225,16 +201,22 @@ Dataset: {training_data.filename}
 Image Channel: {n_channel}
 Image Size: {shape_y} x {shape_x}
 Batch Size: {batch_size}
+Number of Class: {num_classes}
 
 Model: {type(model).__name__}
 Number of Epoch: {epochs}
 Optimizer: {type(optimizer).__name__}
+Number of Layer: {len(list(model.parameters()))}
+Number of Parameter: {sum(p.numel() for p in model.parameters() if p.requires_grad)}
 Learning Rate: {lr}
 Early Stopper Min Delta: {min_delta}
 Early Stopper Patience: {patience}
+ONNX File Size: {formatted_file_size} MB
+
+Quantization: {weight_bit_width}W{act_bit_width}A
+Input Bit Width: {in_bit_width}
 
 Device = {device}
 """
 
 export_brevitas_report(report, process_start_time)
-
