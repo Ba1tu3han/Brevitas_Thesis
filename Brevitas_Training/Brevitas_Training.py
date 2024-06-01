@@ -1,11 +1,9 @@
-#  SOURCE: https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
-
 #   SUMMARY
 # Model:            Brevitas CNV
 # Dataset:          CIFAR10
 # Quantization:     QAT
-# Export Format:    QONNX
 # Bit Width:        W1A1
+# Export Format:    QONNX
 
 #  LIBRARIES
 
@@ -14,23 +12,23 @@ from torch import nn
 from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
 from torchvision import datasets  # stores the samples and their corresponding labels
 from torchvision.transforms import ToTensor  # visual dataset
-
 import time
 import matplotlib.pyplot as plt  # to plot graphs
-
 from losses import SqrHingeLoss
 from trainer import Trainer, EarlyStopper
-
 import cv2
 import numpy as np
+import sys
 
-process_start_time = time.time()
+process_start_time = time.time() # to measure whole processing time
 print("Name of this attempt is: " + str(process_start_time))
 
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 
 batch_size = 32
+n_sample = None
+
 training_data = datasets.CIFAR10(
     root="data",
     train=True,
@@ -45,8 +43,6 @@ test_data = datasets.CIFAR10(
     transform=ToTensor(),
 )
 
-n_sample = None
-
 #  CREATE DATA LOADERS
 train_dataloader = DataLoader(training_data, batch_size=batch_size,
                               sampler=torch.utils.data.RandomSampler(training_data, num_samples=n_sample))
@@ -58,10 +54,10 @@ for X, y in train_dataloader:
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
 
+
 # IMAGE INFO
 N, n_channel, shape_y, shape_x = X.shape
 print('data info', N, n_channel, shape_y, shape_x)
-
 
 #  RESHAPE IMAGES
 # use opencv
@@ -72,11 +68,11 @@ print('data info', N, n_channel, shape_y, shape_x)
 device = (
     "cuda"
     if torch.cuda.is_available()
-    # else "mps"
-    # if torch.backends.mps.is_available()
     else "cpu"
 )
 print(f"Using {device} device")
+if device == 'cpu':
+    sys.exit("It is stopped because device is selected as CPU")
 
 
 #  DEFINING A MODEL
@@ -84,22 +80,20 @@ print(f"Using {device} device")
 from CNV import cnv
 
 config = "skip"
-model = cnv(n_channel=n_channel)
 
+model = cnv(n_channel=n_channel)
 model = model.to(device)  # moving the model to the device
-# print(model)
+
 
 # TRAINING
 
-#  OPTIMIZING THE MODEL PARAMETERS
-
-# learning rate finder for pytorch
-
 # from losses import SqrHingeLoss
 # loss_fn = SqrHingeLoss()  # loss function
+
 loss_fn = nn.CrossEntropyLoss()  # loss function
-optimizer = torch.optim.Adam(model.parameters(), lr=4e-3)  # optimizer
+lr = 4e-3
 epochs = 2  # upper limit of number of epoch
+optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
     optimizer=optimizer,
@@ -116,7 +110,8 @@ train_losses = []
 test_losses = []
 
 min_delta = 0.001
-early_stopper = EarlyStopper(patience=3,
+patience = 3
+early_stopper = EarlyStopper(patience=patience,
                              min_delta=min_delta)
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
@@ -215,12 +210,31 @@ process_end_time = time.time() # Printing the processing time
 time_diff = process_end_time - process_start_time
 print(f"Process Time [min]: {time_diff / 60:.2f}")
 
-'''
-# Showing the test image
-image_np = test_data[0][0].numpy()
-image_np = image_np.transpose((1, 2, 0))
-image_np = (image_np * 255).astype(np.uint8)
-cv2.imshow("Image", image_np)
-cv2.waitKey(0)
-'''
+# REPORT
+
+from reporting import *
+
+report = f"""Validation Accuracy: {epoch_test_accuracy :.4f}
+Validation Loss: {epoch_test_loss :.4f}%
+
+Process Time [min]: {time_diff / 60:.2f}
+
+----------------------------------
+
+Dataset: {training_data.filename}
+Image Channel: {n_channel}
+Image Size: {shape_y} x {shape_x}
+Batch Size: {batch_size}
+
+Model: {type(model).__name__}
+Number of Epoch: {epochs}
+Optimizer: {type(optimizer).__name__}
+Learning Rate: {lr}
+Early Stopper Min Delta: {min_delta}
+Early Stopper Patience: {patience}
+
+Device = {device}
+"""
+
+export_brevitas_report(report, process_start_time)
 
