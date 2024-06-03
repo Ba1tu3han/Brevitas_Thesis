@@ -94,7 +94,7 @@ model = model.to(device)  # moving the model to the device
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
 lr = 4e-3
-epochs = 2 # upper limit of number of epoch
+epochs = 100 # upper limit of number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -135,10 +135,6 @@ for t in range(epochs):
 
 print("Training is Done!")
 
-# PLOTTING ACCURACY GRAPH
-export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, epochs-1)
-
-
 #  SAVING THE MODEL
 torch.save(model.state_dict(), "model.pth")
 print("Saved PyTorch Model State to model.pth")
@@ -146,7 +142,7 @@ print("Saved PyTorch Model State to model.pth")
 
 # EXPORT QONNX
 input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device)
-export_path = 'QONNX_CNV.onnx'
+export_path = f"QONNX_CNV_{weight_bit_width}W{act_bit_width}A.onnx"
 export_qonnx(model, input_tensor, export_path=export_path)
 
 
@@ -209,7 +205,8 @@ Model: {type(model).__name__}
 Number of Layer: {len(list(model.parameters()))}
 Number of Parameter: {sum(p.numel() for p in model.parameters() if p.requires_grad)}
 
-Number of Epoch: {epochs}
+Number of Upper Limit Epoch: {epochs}
+Number of Epoch {t}
 Optimizer: {type(optimizer).__name__}
 Learning Rate: {lr}
 Early Stopper: {early_stopper_flag}
@@ -224,3 +221,5 @@ ONNX File Size: {formatted_file_size} MB
 """
 
 export_brevitas_report(report, process_start_time)
+
+#export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, epochs-1) # PLOTTING ACCURACY GRAPH
