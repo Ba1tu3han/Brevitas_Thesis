@@ -19,8 +19,8 @@ from common_cnv import CommonActQuant
 from common_cnv import CommonWeightQuant
 from tensor_norm_cnv import TensorNorm
 
-
-CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False)] # modified
+CNV_OUT_CH_POOL = [(64, False), (128, True), (256, False)] # modified 2
+#CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False)] # modified 1
 # CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
 
 INTERMEDIATE_FC_FEATURES = [(2304, 512), (512, 512)] # modified
