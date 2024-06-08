@@ -1,10 +1,3 @@
-# SUMMARY
-# Model:            Brevitas CNV
-# Dataset:          CIFAR10
-# Quantization:     QAT
-# Bit Width:        W1A1
-# Export Format:    QONNX
-
 # LIBRARIES
 import torch
 from torch import nn
@@ -75,8 +68,8 @@ if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
 #QUANTIZATION CONFIGURATION
-weight_bit_width = 1
-act_bit_width = 1
+weight_bit_width = 2
+act_bit_width = 2
 in_bit_width = 8
 num_classes = 10
 
