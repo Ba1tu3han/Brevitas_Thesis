@@ -68,8 +68,8 @@ if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
 #QUANTIZATION CONFIGURATION
-weight_bit_width = 2
-act_bit_width = 2
+weight_bit_width = 1
+act_bit_width = 1
 in_bit_width = 8
 num_classes = 10
 
@@ -134,7 +134,7 @@ print("Saved PyTorch Model State to model.pth")
 
 
 # EXPORT QONNX
-input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device)
+input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device) # bach size must be 1 https://github.com/Xilinx/finn/discussions/1029
 export_path = f"QONNX_CNV_{weight_bit_width}W{act_bit_width}A.onnx"
 export_qonnx(model, input_tensor, export_path=export_path)
 
