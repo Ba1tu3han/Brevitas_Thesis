@@ -68,8 +68,8 @@ if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
 #QUANTIZATION CONFIGURATION
-weight_bit_width = 2
-act_bit_width = 2
+weight_bit_width = 8
+act_bit_width = 4
 in_bit_width = 8
 num_classes = 10
 
@@ -78,6 +78,9 @@ config = "skip"
 
 model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
 model = model.to(device)  # moving the model to the device
+model_name = {type(model).__name__}
+model_name = model_name.pop()
+
 
 
 # TRAINING
@@ -135,7 +138,7 @@ print("Saved PyTorch Model State to model.pth")
 
 # EXPORT QONNX
 input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device) # bach size must be 1 https://github.com/Xilinx/finn/discussions/1029
-export_path = f"QONNX_CNV_{weight_bit_width}W{act_bit_width}A.onnx"
+export_path = f"QONNX_{model_name}_{weight_bit_width}W{act_bit_width}A.onnx"
 export_qonnx(model, input_tensor, export_path=export_path)
 
 
@@ -144,7 +147,7 @@ def show_netron(model_path, port):
     time.sleep(3.)
     netron.start(model_path, address=("localhost", port), browse=False)
     return IFrame(src=f"http://localhost:{port}/", width="100%", height=400)
-show_netron(export_path, 8082)
+# show_netron(export_path, 8082) # not necessary
 
 # LOADING THE TRAINED MODEL
 model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes).to(device)
@@ -215,4 +218,5 @@ ONNX File Size: {formatted_file_size} MB
 
 export_brevitas_report(report, process_start_time)
 
-#export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, epochs-1) # PLOTTING ACCURACY GRAPH
+# there is an error in plotting
+# export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, epochs-1) # PLOTTING ACCURACY GRAPH
