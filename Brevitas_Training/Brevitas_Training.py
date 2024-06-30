@@ -14,6 +14,9 @@ from CNV import cnv
 from trainer import Trainer, EarlyStopper
 from reporting import *
 
+# run_name = modified1
+# overwrite = true/false
+
 # PROCESS TIME MEASURING
 process_start_time = time.time() # to measure whole processing time
 print("Name of this attempt is: " + str(process_start_time))
@@ -68,8 +71,8 @@ if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
 #QUANTIZATION CONFIGURATION
-weight_bit_width = 8
-act_bit_width = 4
+weight_bit_width = 1
+act_bit_width = 1
 in_bit_width = 8
 num_classes = 10
 
@@ -90,7 +93,7 @@ model_name = model_name.pop()
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
 lr = 4e-3
-epochs = 100 # upper limit of number of epoch
+epochs = 50 # upper limit of number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,

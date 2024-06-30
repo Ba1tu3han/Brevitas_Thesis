@@ -21,11 +21,13 @@ from tensor_norm_cnv import TensorNorm
 
 
 # CNV_OUT_CH_POOL = [(64, False), (64, True), (128, True), (128, True), (256, False)] # modified
-CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
+CNV_OUT_CH_POOL = [(16, True), (32, True), (16, True)] # modified 2
+#CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
 
 
 #INTERMEDIATE_FC_FEATURES = [(2304, 512), (512, 512)] # modified
-INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
+INTERMEDIATE_FC_FEATURES = [(256, 512)] # modified 2
+#INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
 
 LAST_FC_IN_FEATURES = 512
 LAST_FC_PER_OUT_CH_SCALING = False
@@ -57,7 +59,8 @@ class CNV(Module):
                     out_channels=out_ch,
                     bias=False,
                     weight_quant=CommonWeightQuant,
-                    weight_bit_width=weight_bit_width))
+                    weight_bit_width=weight_bit_width,
+                    padding=1)) # for modified 2
             in_ch = out_ch
             self.conv_features.append(BatchNorm2d(in_ch, eps=1e-4))
             self.conv_features.append(
