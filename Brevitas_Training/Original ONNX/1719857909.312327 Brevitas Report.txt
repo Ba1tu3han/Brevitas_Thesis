@@ -1,0 +1,31 @@
+Validation Accuracy: 75.7600
+Validation Loss: 0.8057%
+
+Export Path: QONNX_CNV_4W4A.onnx
+Process Time [min]: 2.98
+
+----------------------------------
+
+Dataset: cifar-10-python.tar.gz
+Image Channel: 3
+Image Size: 32 x 32
+Batch Size: 32
+Number of Class: 10
+
+Model: CNV
+Number of Layer: 27
+Number of Parameter: 1546690
+
+Number of Upper Limit Epoch: 50
+Number of Epoch 8
+Optimizer: Adam
+Learning Rate: 0.004
+Early Stopper: True
+Early Stopper Min Delta: 0.001
+Early Stopper Patience: 3
+
+Quantization: 4W4A
+Input Bit Width: 8
+
+Device = cuda
+ONNX File Size: 5.93 MB

@@ -14,8 +14,6 @@ from CNV import cnv
 from trainer import Trainer, EarlyStopper
 from reporting import *
 
-# run_name = modified1
-# overwrite = true/false
 
 # PROCESS TIME MEASURING
 process_start_time = time.time() # to measure whole processing time
@@ -71,8 +69,8 @@ if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
 #QUANTIZATION CONFIGURATION
-weight_bit_width = 1
-act_bit_width = 1
+weight_bit_width = 4
+act_bit_width = 4
 in_bit_width = 8
 num_classes = 10
 
