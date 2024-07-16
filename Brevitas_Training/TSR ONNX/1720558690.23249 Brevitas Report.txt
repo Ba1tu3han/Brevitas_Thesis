@@ -1,0 +1,31 @@
+Validation Accuracy: 90.2138
+Validation Loss: 0.3804%
+
+Export Path: QONNX_CNV_1W1A.onnx
+Process Time [min]: 1.65
+
+----------------------------------
+
+
+Image Channel: 3
+Image Size: 32 x 32
+Batch Size: 32
+Number of Class: 43
+
+Model: CNV
+Number of Layer: 27
+Number of Parameter: 1563586
+
+Number of Upper Limit Epoch: 50
+Number of Epoch 7
+Optimizer: Adam
+Learning Rate: 0.004
+Early Stopper: True
+Early Stopper Min Delta: 0.001
+Early Stopper Patience: 3
+
+Quantization: 1W1A
+Input Bit Width: 8
+
+Device = cuda
+ONNX File Size: 6.00 MB
