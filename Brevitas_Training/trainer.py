@@ -34,6 +34,8 @@ class Trainer:
         for batch, (X, y) in enumerate(self.train_dataloader):
             X, y = X.to(self.device), y.to(self.device)
 
+            self.optimizer.zero_grad()
+
             # Compute prediction error
             pred = self.model(X)
             loss = self.loss_fn(pred, y)
@@ -41,7 +43,7 @@ class Trainer:
             # Backpropagation
             loss.backward()
             self.optimizer.step()
-            self.optimizer.zero_grad()
+
 
             train_loss += loss.item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
