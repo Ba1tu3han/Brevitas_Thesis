@@ -3,15 +3,11 @@ import os
 import onnx
 import torch
 from torch import nn
-from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
-from torchvision import datasets  # stores the samples and their corresponding labels
 from torchvision.transforms import ToTensor, Resize, Compose  # visual dataset
 import time
 import sys
 import netron
 from IPython.display import IFrame
-
-
 
 from trainer import Trainer, EarlyStopper
 from reporting import *
@@ -23,11 +19,16 @@ print("Name of this attempt is: " + str(process_start_time))
 
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
+from torchvision import datasets  # stores the samples and their corresponding labels
+import numpy as np
+
+torch.manual_seed(0) # Setting seeds for reproducibility, keeps random numbers the same
+np.random.seed(0)
 
 batch_size = 32
 n_sample = None
 
-resize_tensor = Compose([
+resize_tensor = Compose([ # resizing dataset images
   Resize([32, 32]), # target size of dataset images
   ToTensor()
 ])
@@ -49,6 +50,7 @@ print("DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS is done")
 
 
 #  SETTINGS UP DATALOADERS
+from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
 
 train_dataloader = DataLoader(training_data, batch_size=batch_size,
                               sampler=torch.utils.data.RandomSampler(training_data, num_samples=n_sample))
@@ -80,16 +82,13 @@ print(f"Using {device} device")
 if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
-#
-
-
 
 # DEFINING A MODEL
 
 from CNV import cnv
 
-weight_bit_width = 4 # quantization configuration for weights
-act_bit_width = 4 # quantization configuration for activation functions
+weight_bit_width = 1 # quantization configuration for weights
+act_bit_width = 1 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
@@ -163,7 +162,7 @@ from qonnx.util.cleanup import cleanup as qonnx_cleanup # pip install qonnx
 
 input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device) # bach size must be 1 https://github.com/Xilinx/finn/discussions/1029
 export_path = f"QONNX_{model_name}_{weight_bit_width}W{act_bit_width}A.onnx"
-export_qonnx(model, input_tensor, export_path=export_path)
+export_qonnx(model, export_path=export_path, input_t=input_tensor)
 qonnx_cleanup(export_path, out_file=export_path)
 
 print("EXPORTING AND CLEANING UP QONNX is Done!")
