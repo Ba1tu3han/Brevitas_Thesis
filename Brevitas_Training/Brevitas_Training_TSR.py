@@ -85,16 +85,19 @@ if device == 'cpu':
 
 # DEFINING A MODEL
 
-from CNV import cnv
+#from CNV import CNV # Original CNV network, TSR is also used this model
+from TSR_Light_model import CNV # TSR Light network
 
-weight_bit_width = 4 # quantization configuration for weights
-act_bit_width = 4 # quantization configuration for activation functions
+project_name = "TSR_Light" # to name the output onnx file
+
+weight_bit_width = 1 # quantization configuration for weights
+act_bit_width = 1 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
 config = "skip"
 
-model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
+model = CNV(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
 model = model.to(device)  # moving the model to the device
 model_name = {type(model).__name__}
 model_name = model_name.pop()
@@ -161,7 +164,7 @@ from brevitas.export import export_qonnx # for exporting ONNX
 from qonnx.util.cleanup import cleanup as qonnx_cleanup # pip install qonnx
 
 input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device) # bach size must be 1 https://github.com/Xilinx/finn/discussions/1029
-export_path = f"QONNX_{model_name}_{weight_bit_width}W{act_bit_width}A.onnx"
+export_path = f"QONNX_{project_name}_{weight_bit_width}W{act_bit_width}A.onnx"
 export_qonnx(model, export_path=export_path, input_t=input_tensor)
 qonnx_cleanup(export_path, out_file=export_path)
 
@@ -180,7 +183,7 @@ print("MODEL VISUALIZATION is Done!")
 
 # EVALUATING THE MODEL
 
-model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes).to(device) # LOADING THE TRAINED MODEL
+model = CNV(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes).to(device) # LOADING THE TRAINED MODEL
 model.load_state_dict(torch.load("model.pth"))
 
 classes = list(range(num_classes))
