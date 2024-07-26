@@ -87,8 +87,8 @@ if device == 'cpu':
 
 from CNV import cnv
 
-weight_bit_width = 1 # quantization configuration for weights
-act_bit_width = 1 # quantization configuration for activation functions
+weight_bit_width = 4 # quantization configuration for weights
+act_bit_width = 4 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
