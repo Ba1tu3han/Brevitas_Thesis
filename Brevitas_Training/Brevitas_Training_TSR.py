@@ -169,7 +169,7 @@ from brevitas.export import export_qonnx # for exporting ONNX
 from qonnx.util.cleanup import cleanup as qonnx_cleanup # pip install qonnx
 
 input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device) # bach size must be 1 https://github.com/Xilinx/finn/discussions/1029
-export_path = f"QONNX_{project_name}_{weight_bit_width}W{act_bit_width}A.onnx"
+export_path = f"QONNX_{project_name}_W{weight_bit_width}A{act_bit_width}.onnx"
 export_qonnx(model, export_path=export_path, input_t=input_tensor)
 qonnx_cleanup(export_path, out_file=export_path)
 
@@ -236,7 +236,7 @@ Early Stopper: {early_stopper_flag}
 Early Stopper Min Delta: {min_delta}
 Early Stopper Patience: {patience}
 
-Quantization: {weight_bit_width}W{act_bit_width}A
+Quantization: W{weight_bit_width}A{act_bit_width}
 Input Bit Width: {in_bit_width}
 
 Device = {device}
