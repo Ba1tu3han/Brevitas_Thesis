@@ -27,7 +27,9 @@ from tensor_norm_cnv import TensorNorm
 #INTERMEDIATE_FC_FEATURES = [(256, 512)] # modified 2
 
 
-CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
+#CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
+CNV_OUT_CH_POOL = [(32, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # for GTSRB
+
 INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
 LAST_FC_IN_FEATURES = 512
 LAST_FC_PER_OUT_CH_SCALING = False
@@ -91,6 +93,7 @@ class CNV(Module):
         for m in self.modules():
             if isinstance(m, QuantConv2d) or isinstance(m, QuantLinear):
                 torch.nn.init.uniform_(m.weight.data, -1, 1)
+
 
     def clip_weights(self, min_val, max_val):
         for mod in self.conv_features:

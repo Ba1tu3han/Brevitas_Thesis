@@ -22,8 +22,8 @@ print("Name of this attempt is: " + str(process_start_time))
 from torchvision import datasets  # stores the samples and their corresponding labels
 import numpy as np
 
-torch.manual_seed(0) # Setting seeds for reproducibility, keeps random numbers the same
-np.random.seed(0)
+torch.manual_seed(0) # for torch, Setting seeds for reproducibility, keeps random numbers the same
+np.random.seed(0) # for numpy
 
 batch_size = 32
 n_sample = None
@@ -78,6 +78,10 @@ device = (
     if torch.cuda.is_available()
     else "cpu"
 )
+torch.cuda.manual_seed(0) #for reproductability
+torch.backends.cudnn.deterministic = True #for reproductability
+torch.backends.cudnn.benchmark = False #for reproductability
+
 print(f"Using {device} device")
 if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
@@ -85,19 +89,19 @@ if device == 'cpu':
 
 # DEFINING A MODEL
 
-#from CNV import CNV # Original CNV network, TSR is also used this model
-from TSR_Light_model import CNV # TSR Light network
+from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
+#from TSR_Light_model import CNV # TSR Light network
 
-project_name = "TSR_Light" # to name the output onnx file
+project_name = "CNV" # to name the output onnx file
 
 weight_bit_width = 1 # quantization configuration for weights
-act_bit_width = 1 # quantization configuration for activation functions
+act_bit_width = 8 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
 config = "skip"
 
-model = CNV(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
+model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
 model = model.to(device)  # moving the model to the device
 model_name = {type(model).__name__}
 model_name = model_name.pop()
@@ -110,8 +114,8 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 4e-3
-epochs = 50 # upper limit of number of epoch
+lr = 5e-3
+epochs = 100 # upper limit of number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -183,7 +187,7 @@ print("MODEL VISUALIZATION is Done!")
 
 # EVALUATING THE MODEL
 
-model = CNV(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes).to(device) # LOADING THE TRAINED MODEL
+model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes).to(device) # LOADING THE TRAINED MODEL
 model.load_state_dict(torch.load("model.pth"))
 
 classes = list(range(num_classes))
