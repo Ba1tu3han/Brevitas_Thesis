@@ -8,6 +8,7 @@ import time
 import sys
 import netron
 from IPython.display import IFrame
+import numpy as np
 
 from trainer import Trainer, EarlyStopper
 from reporting import *
@@ -39,8 +40,6 @@ torch.backends.cudnn.benchmark = False #for reproductability
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 from torchvision import datasets  # stores the samples and their corresponding labels
-import numpy as np
-
 
 
 batch_size = 32
@@ -89,9 +88,6 @@ print('data info', N, n_channel, shape_y, shape_x)
 print("SETTINGS UP DATALOADERS is done")
 
 
-
-
-
 # DEFINING A MODEL
 
 from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
@@ -99,8 +95,8 @@ from CNV import cnv # Original CNV network. Be careful "import cnv" shall be low
 
 project_name = "CNV" # to name the output onnx file
 
-weight_bit_width = 1 # quantization configuration for weights
-act_bit_width = 8 # quantization configuration for activation functions
+weight_bit_width = 2 # quantization configuration for weights
+act_bit_width = 4 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
@@ -119,7 +115,7 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 5e-3
+lr = 2e-3
 epochs = 100 # upper limit of number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
@@ -137,7 +133,7 @@ test_accuracies = []
 train_losses = []
 test_losses = []
 
-min_delta = 0.001
+min_delta = 0.0001
 patience = 3
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
