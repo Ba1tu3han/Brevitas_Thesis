@@ -17,13 +17,31 @@ from reporting import *
 process_start_time = time.time() # to measure whole processing time
 print("Name of this attempt is: " + str(process_start_time))
 
+#  DEVICE CHECK
+
+device = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "cpu"
+)
+print(f"Using {device} device")
+if device == 'cpu':
+    sys.exit("It is stopped because device is selected as CPU")
+
+# REPRODUCTIVITY
+
+torch.manual_seed(0) # for torch, Setting seeds for reproducibility, keeps random numbers the same
+np.random.seed(0) # for numpy
+torch.cuda.manual_seed(0) #for reproductability
+torch.backends.cudnn.deterministic = True #for reproductability
+torch.backends.cudnn.benchmark = False #for reproductability
+
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
 from torchvision import datasets  # stores the samples and their corresponding labels
 import numpy as np
 
-torch.manual_seed(0) # for torch, Setting seeds for reproducibility, keeps random numbers the same
-np.random.seed(0) # for numpy
+
 
 batch_size = 32
 n_sample = None
@@ -71,20 +89,7 @@ print('data info', N, n_channel, shape_y, shape_x)
 print("SETTINGS UP DATALOADERS is done")
 
 
-#  DEVICE CHECK FOR TRAINING
 
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "cpu"
-)
-torch.cuda.manual_seed(0) #for reproductability
-torch.backends.cudnn.deterministic = True #for reproductability
-torch.backends.cudnn.benchmark = False #for reproductability
-
-print(f"Using {device} device")
-if device == 'cpu':
-    sys.exit("It is stopped because device is selected as CPU")
 
 
 # DEFINING A MODEL
