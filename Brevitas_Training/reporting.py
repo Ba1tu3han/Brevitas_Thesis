@@ -16,14 +16,14 @@ def export_brevitas_report(report, process_start_time):
     print("Brevitas Report is exported successfully to:", report_file_path)
 
 
-def export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, t):
+def export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, run_info=''):
 
     accuracy_graph_folder_path = "Accuracy Graphs"
 
     if not os.path.exists(accuracy_graph_folder_path): # Check if the folder exists, if not, create it
         os.makedirs(accuracy_graph_folder_path)
 
-    epoch_list = list(range(t + 1))  # to list epochs to the end
+    epoch_list = list(range(len(train_losses)))  # to list epochs to the end
     fig, ax = plt.subplots(2, 1)
 
     ax[0].plot(epoch_list, train_losses, label="Train Loss")
@@ -37,7 +37,7 @@ def export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accu
     ax[1].set_ylabel('Accuracy (Top1)')
     ax[1].legend()
 
-    figure_name = "Accuracy_Loss_Plot " + str(process_start_time) + ".png"
+    figure_name = f"Accuracy_Loss_Plot {run_info} {process_start_time}.png"
     plt.savefig(os.path.join(accuracy_graph_folder_path, figure_name))
 
     print("Accuracy Graph is exported successfully to:", accuracy_graph_folder_path)

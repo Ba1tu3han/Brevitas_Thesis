@@ -1,5 +1,7 @@
 # SOURCE: https://github.com/Xilinx/brevitas/blob/master/src/brevitas_examples/bnn_pynq/models/CNV.py
 
+# This network is light version of the original CNV network of FINN.
+
 # Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -19,9 +21,11 @@ from common_cnv import CommonActQuant
 from common_cnv import CommonWeightQuant
 from tensor_norm_cnv import TensorNorm
 
+
 #CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
 CNV_OUT_CH_POOL = [(32, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # for GTSRB dataset
 
+#INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
 INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
 LAST_FC_IN_FEATURES = 512
 LAST_FC_PER_OUT_CH_SCALING = False
@@ -103,9 +107,6 @@ class CNV(Module):
         for mod in self.linear_features:
             x = mod(x)
         return x
-
-
-
 
 def cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes):
     #weight_bit_width = cfg.getint('QUANT', 'WEIGHT_BIT_WIDTH')
