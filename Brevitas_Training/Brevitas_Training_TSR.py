@@ -90,13 +90,12 @@ print("SETTINGS UP DATALOADERS is done")
 
 # DEFINING A MODEL
 
-from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
-#from CNV_light import cnv # light version of the CNV
+#from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
+from CNV_light import cnv # light version of the CNV
+project_name = "CNV_light" # to name the output onnx file. "CNV" or "CNV_light"
 
-project_name = "CNV" # to name the output onnx file
-
-weight_bit_width = 4 # quantization configuration for weights
-act_bit_width = 4 # quantization configuration for activation functions
+weight_bit_width = 1 # quantization configuration for weights
+act_bit_width = 1 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
@@ -116,7 +115,7 @@ print("DEFINING A MODEL is done")
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
 lr = 5e-3 # the best practice is 5e-3
-epochs = 150 # upper limit of the number of epoch
+epochs = 100 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -133,8 +132,8 @@ test_accuracies = []
 train_losses = []
 test_losses = []
 
-min_delta = 0.0001
-patience = 5
+min_delta = 0
+patience = 3
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
 
@@ -212,6 +211,9 @@ print("EVALUATING THE MODEL is Done!")
 formatted_ONNX_file_size = "{:.2f}".format(os.path.getsize(export_path) / (1024 * 1024))
 formatted_PTH_file_size = "{:.2f}".format(os.path.getsize(f"model_{project_name}_W{weight_bit_width}A{act_bit_width}.pth") / (1024 * 1024))
 
+from torchsummary import summary # Pytorch summary
+model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
+model_stats = summary(model, (n_channel, shape_y, shape_x))
 
 report = f"""Validation Accuracy: {epoch_test_accuracy :.4f}
 Validation Loss: {epoch_test_loss :.4f}%
@@ -226,7 +228,7 @@ Image Size: {shape_y} x {shape_x}
 Batch Size: {batch_size}
 Number of Class: {num_classes}
 
-Model: {type(model).__name__}
+Project Name: {project_name}
 Number of Layer: {len(list(model.parameters()))}
 Number of Parameter: {sum(p.numel() for p in model.parameters() if p.requires_grad)}
 
@@ -244,6 +246,8 @@ Input Bit Width: {in_bit_width}
 Device = {device}
 ONNX File Size: {formatted_ONNX_file_size} MB
 PTH File Size: {formatted_PTH_file_size} MB
+
+{model_stats}
 """
 #Dataset: {training_data.file}
 export_brevitas_report(report, process_start_time)
@@ -253,3 +257,6 @@ print("REPORTING is Done!")
 
 run_info = f"{project_name}_W{weight_bit_width}A{act_bit_width}"
 export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, run_info) # PLOTTING ACCURACY GRAPH
+
+
+

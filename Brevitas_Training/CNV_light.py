@@ -21,12 +21,11 @@ from common_cnv import CommonActQuant
 from common_cnv import CommonWeightQuant
 from tensor_norm_cnv import TensorNorm
 
-
 #CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
-CNV_OUT_CH_POOL = [(32, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # for GTSRB dataset
+CNV_OUT_CH_POOL = [(32, False), (64, True), (128, True), (64, True)]
 
 #INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
-INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
+INTERMEDIATE_FC_FEATURES = [(256, 512)]
 LAST_FC_IN_FEATURES = 512
 LAST_FC_PER_OUT_CH_SCALING = False
 POOL_SIZE = 2
@@ -109,15 +108,6 @@ class CNV(Module):
         return x
 
 def cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes):
-    #weight_bit_width = cfg.getint('QUANT', 'WEIGHT_BIT_WIDTH')
-    #weight_bit_width = 1/2/4/8
-    #act_bit_width = cfg.getint('QUANT', 'ACT_BIT_WIDTH')
-    #act_bit_width =  1/2/4/8
-    #in_bit_width = cfg.getint('QUANT', 'IN_BIT_WIDTH')
-    #in_bit_width = 8
-    #num_classes = cfg.getint('MODEL', 'NUM_CLASSES')
-    #num_classes = 10
-    #in_channels = cfg.getint('MODEL', 'IN_CHANNELS')
     in_channels = n_channel # grayscale = 1, RGB color = 3
     net = CNV(
         weight_bit_width=weight_bit_width,
