@@ -50,12 +50,15 @@ resize_tensor = Compose([ # resizing dataset images
   ToTensor()
 ])
 
-training_data = datasets.GTSRB( # German Traffic Sign Dataset
+train_validation_data = datasets.GTSRB( # German Traffic Sign Dataset
     root = "data",
     split = "train",
     download=True,
     transform=resize_tensor
 )
+train_size = int(0.8 * len(train_validation_data))
+validation_size = len(train_validation_data) - train_size
+training_data, validation_data = torch.utils.data.random_split(train_validation_data, [train_size, validation_size])
 
 test_data = datasets.GTSRB(
     root = "data",
@@ -74,6 +77,8 @@ train_dataloader = DataLoader(training_data, batch_size=batch_size,
 test_dataloader = DataLoader(test_data, batch_size=batch_size,
                              sampler=torch.utils.data.RandomSampler(test_data, num_samples=n_sample))
 # for train: shuffle=True for test: shuffle:False can be added
+from collections import Counter
+print(dict(Counter(training_data.targets)))
 
 
 for X, y in train_dataloader:
@@ -90,9 +95,9 @@ print("SETTINGS UP DATALOADERS is done")
 
 # DEFINING A MODEL
 
-#from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
-from CNV_light import cnv # light version of the CNV
-project_name = "CNV_light" # to name the output onnx file. "CNV" or "CNV_light"
+from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
+#from CNV_light import cnv # light version of the CNV
+project_name = "CNV" # to name the output onnx file. "CNV" or "CNV_light"
 
 weight_bit_width = 8 # quantization configuration for weights
 act_bit_width = 8 # quantization configuration for activation functions
