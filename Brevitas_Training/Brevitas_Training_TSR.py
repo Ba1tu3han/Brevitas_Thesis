@@ -94,8 +94,8 @@ print("SETTINGS UP DATALOADERS is done")
 from CNV_light import cnv # light version of the CNV
 project_name = "CNV_light" # to name the output onnx file. "CNV" or "CNV_light"
 
-weight_bit_width = 1 # quantization configuration for weights
-act_bit_width = 1 # quantization configuration for activation functions
+weight_bit_width = 8 # quantization configuration for weights
+act_bit_width = 8 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
@@ -114,7 +114,7 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 5e-3 # the best practice is 5e-3
+lr = 4e-3 # the best practice is 4e-3
 epochs = 100 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
@@ -133,7 +133,7 @@ train_losses = []
 test_losses = []
 
 min_delta = 0
-patience = 3
+patience = 1 # best practice is 15
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
 
@@ -211,9 +211,10 @@ print("EVALUATING THE MODEL is Done!")
 formatted_ONNX_file_size = "{:.2f}".format(os.path.getsize(export_path) / (1024 * 1024))
 formatted_PTH_file_size = "{:.2f}".format(os.path.getsize(f"model_{project_name}_W{weight_bit_width}A{act_bit_width}.pth") / (1024 * 1024))
 
-from torchsummary import summary # Pytorch summary
-model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes)
-model_stats = summary(model, (n_channel, shape_y, shape_x))
+from torchinfo import summary
+
+model_stats = summary(model, input_size=(batch_size, n_channel, shape_y, shape_x))
+
 
 report = f"""Validation Accuracy: {epoch_test_accuracy :.4f}
 Validation Loss: {epoch_test_loss :.4f}%
