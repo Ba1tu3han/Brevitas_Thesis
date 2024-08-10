@@ -1,5 +1,4 @@
 import os
-
 import torch
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.metrics import precision_recall_fscore_support
@@ -89,7 +88,7 @@ class Trainer:
                                                                    average='macro')
         val_loss /= num_batches
 
-        print(f"Validation Error: \n Accuracy (Top1): {accuracy:>0.2f}%, F1 (macro): {f1:>0.2f}%, Avg loss: {val_loss:>8f}\n")
+        print(f"Validation Error: \n Accuracy (Top1): {accuracy:>0.4f}%, F1 (macro): {f1:>0.4f}%, Avg loss: {val_loss:>8f}\n")
         return accuracy, f1, val_loss
 
     def test(self, report_name):

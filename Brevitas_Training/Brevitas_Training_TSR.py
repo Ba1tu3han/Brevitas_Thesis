@@ -95,15 +95,14 @@ print('data info', N, n_channel, shape_y, shape_x)
 
 print("SETTINGS UP DATALOADERS is done")
 
-
 # DEFINING A MODEL
 
-from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
-#from CNV_light import cnv # light version of the CNV
-project_name = "CNV" # to name the output onnx file. "CNV" or "CNV_light"
+#from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
+from CNV_light import cnv # light version of the CNV
+project_name = "CNV_light" # to name the output onnx file. "CNV" or "CNV_light"
 
-weight_bit_width = 8 # quantization configuration for weights
-act_bit_width = 8 # quantization configuration for activation functions
+weight_bit_width = 1 # quantization configuration for weights
+act_bit_width = 1 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
@@ -123,7 +122,7 @@ print("DEFINING A MODEL is done")
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
 lr = 4e-3 # the best practice is 4e-3
-epochs = 10 # upper limit of the number of epoch
+epochs = 200 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -144,7 +143,7 @@ validation_losses = []
 
 
 min_delta = 0
-patience = 1 # best practice is 15
+patience = 15 # best practice is 15
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
 
@@ -235,6 +234,8 @@ from torchinfo import summary
 
 model_stats = summary(model, input_size=(batch_size, n_channel, shape_y, shape_x))
 
+total_size = sum(p.numel() * p.element_size() for p in model.parameters()) # for memory usage
+
 
 report = f"""\
 Validation Accuracy: {epoch_validation_accuracy :.4f}
@@ -261,6 +262,7 @@ Number of Class: {num_classes}
 Project Name: {project_name}
 Number of Layer: {len(list(model.parameters()))}
 Number of Parameter: {sum(p.numel() for p in model.parameters() if p.requires_grad)}
+Memory Usage: {total_size / (1024 ** 2):.2f} MB
 
 Number of Upper Limit Epoch: {epochs}
 Number of Epoch {t}
