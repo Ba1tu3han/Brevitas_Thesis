@@ -16,7 +16,10 @@ def export_brevitas_report(report, process_start_time):
     print("Brevitas Report is exported successfully to:", report_file_path)
 
 
-def export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, run_info=''):
+def export_accuracy_graph(train_losses, validation_losses,
+                          train_accuracies, validation_accuracies,
+                          train_f1s, validation_f1s,
+                          process_start_time, run_info=''):
 
     accuracy_graph_folder_path = "Accuracy Graphs"
 
@@ -24,18 +27,25 @@ def export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accu
         os.makedirs(accuracy_graph_folder_path)
 
     epoch_list = list(range(len(train_losses)))  # to list epochs to the end
-    fig, ax = plt.subplots(2, 1)
+    fig, ax = plt.subplots(3, 1)
 
     ax[0].plot(epoch_list, train_losses, label="Train Loss")
-    ax[0].plot(epoch_list, test_losses, label="Validation Loss")
+    ax[0].plot(epoch_list, validation_losses, label="Validation Loss")
     ax[0].set_ylabel('Loss')
     ax[0].legend()
 
     ax[1].plot(epoch_list, train_accuracies, label="Train Accuracy")
-    ax[1].plot(epoch_list, test_accuracies, label="Validation Accuracy")
+    ax[1].plot(epoch_list, validation_accuracies, label="Validation Accuracy")
     ax[1].set_xlabel('Number of Epoch')
     ax[1].set_ylabel('Accuracy (Top1)')
     ax[1].legend()
+
+    ax[2].plot(epoch_list, train_f1s, label="Train F1")
+    ax[2].plot(epoch_list, validation_f1s, label="Validation F1")
+    ax[2].set_xlabel('Number of Epoch')
+    ax[2].set_ylabel('F1 (macro)')
+    ax[2].legend()
+
 
     figure_name = f"Accuracy_Loss_Plot {run_info} {process_start_time}.png"
     plt.savefig(os.path.join(accuracy_graph_folder_path, figure_name))

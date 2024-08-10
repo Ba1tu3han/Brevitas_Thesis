@@ -74,12 +74,15 @@ from torch.utils.data import DataLoader  # wraps an iterable around the Dataset
 
 train_dataloader = DataLoader(training_data, batch_size=batch_size,
                               sampler=torch.utils.data.RandomSampler(training_data, num_samples=n_sample))
+validation_dataloader = DataLoader(validation_data, batch_size=batch_size,
+                                   sampler=torch.utils.data.RandomSampler(validation_data, num_samples=n_sample))
 test_dataloader = DataLoader(test_data, batch_size=batch_size,
                              sampler=torch.utils.data.RandomSampler(test_data, num_samples=n_sample))
-# for train: shuffle=True for test: shuffle:False can be added
-from collections import Counter
-print(dict(Counter(training_data.targets)))
 
+print(f"Train size: {len(train_dataloader)}\n"
+      f"Validation size: {len(validation_dataloader)}\n"
+      f"Test Size: {len(test_dataloader)}")
+# for train: shuffle=True for test: shuffle:False can be added
 
 for X, y in train_dataloader:
     print(f"Shape of X [N, C, H, W]: {X.shape}")
@@ -120,7 +123,7 @@ print("DEFINING A MODEL is done")
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
 lr = 4e-3 # the best practice is 4e-3
-epochs = 100 # upper limit of the number of epoch
+epochs = 10 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -128,14 +131,17 @@ trainer = Trainer(
     loss_fn=loss_fn,
     device=device,
     train_dataloader=train_dataloader,
-    val_dataloader=test_dataloader,
+    val_dataloader=validation_dataloader,
     test_dataloader=test_dataloader,
     sample_size=n_sample
 )
 train_accuracies = []
-test_accuracies = []
+validation_accuracies = []
+train_f1s = []
+validation_f1s = []
 train_losses = []
-test_losses = []
+validation_losses = []
+
 
 min_delta = 0
 patience = 1 # best practice is 15
@@ -144,15 +150,19 @@ early_stopper_flag = False # for the Brevitas Report
 
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
-    epoch_train_accuracy, epoch_train_loss = trainer.train_one_epoch()
-    epoch_test_accuracy, epoch_test_loss = trainer.validate_one_epoch()
+    epoch_train_accuracy, epoch_train_f1, epoch_train_loss = trainer.train_one_epoch()
+    epoch_validation_accuracy, epoch_validation_f1, epoch_validation_loss = trainer.validate_one_epoch()
 
     train_accuracies.append(epoch_train_accuracy)
-    test_accuracies.append(epoch_test_accuracy)
-    train_losses.append(epoch_train_loss)
-    test_losses.append(epoch_test_loss)
+    validation_accuracies.append(epoch_validation_accuracy)
 
-    if early_stopper.early_stop(epoch_test_loss):
+    train_f1s.append(epoch_train_f1)
+    validation_f1s.append(epoch_validation_f1)
+
+    train_losses.append(epoch_train_loss)
+    validation_losses.append(epoch_validation_loss)
+
+    if early_stopper.early_stop(epoch_validation_loss):
         print(f"The training loop is stopped due to no improvement in accuracy. "
               f"It is equal to or smaller than {min_delta}")
         print(f"Number of epoch: {t}")
@@ -161,10 +171,12 @@ for t in range(epochs):
 
 print("TRAINING is Done!")
 
+run_info = f"{project_name}_W{weight_bit_width}A{act_bit_width}"
+
 #  SAVING THE MODEL
 
-torch.save(model.state_dict(), f"model_{project_name}_W{weight_bit_width}A{act_bit_width}.pth")
-print(f"SAVING THE MODEL is done. File name is model_{project_name}_W{weight_bit_width}A{act_bit_width}.pth")
+torch.save(model.state_dict(), f"model_{run_info}.pth")
+print(f"SAVING THE MODEL is done. File name is model_{run_info}.pth")
 
 
 # EXPORTING AND CLEANING UP QONNX
@@ -173,7 +185,7 @@ from brevitas.export import export_qonnx # for exporting ONNX
 from qonnx.util.cleanup import cleanup as qonnx_cleanup # pip install qonnx
 
 input_tensor = torch.randn(1, n_channel, shape_x, shape_y).to(device) # bach size must be 1 https://github.com/Xilinx/finn/discussions/1029
-export_path = f"QONNX_{project_name}_W{weight_bit_width}A{act_bit_width}.onnx"
+export_path = f"QONNX_{run_info}.onnx"
 export_qonnx(model, export_path=export_path, input_t=input_tensor)
 qonnx_cleanup(export_path, out_file=export_path)
 
@@ -193,16 +205,19 @@ print("MODEL VISUALIZATION is Done!")
 # EVALUATING THE MODEL
 
 model = cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes).to(device) # LOADING THE TRAINED MODEL
-model.load_state_dict(torch.load(f"model_{project_name}_W{weight_bit_width}A{act_bit_width}.pth"))
+model.load_state_dict(torch.load(f"model_{run_info}.pth"))
 
 classes = list(range(num_classes))
 
+
+report_name = f"Classification_Report_{run_info} {process_start_time}.txt"
 model.eval()
 x, y = test_data[0][0], test_data[0][1]
 with torch.no_grad():
     x = x.reshape((1,)+tuple(x.shape)).to(device)
     pred = model(x)
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
+    test_accuracy, test_precision, test_recall, test_f1, test_loss = trainer.test(report_name)
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
 
 process_end_time = time.time() # Printing the processing time
@@ -214,15 +229,24 @@ print("EVALUATING THE MODEL is Done!")
 # REPORT
 
 formatted_ONNX_file_size = "{:.2f}".format(os.path.getsize(export_path) / (1024 * 1024))
-formatted_PTH_file_size = "{:.2f}".format(os.path.getsize(f"model_{project_name}_W{weight_bit_width}A{act_bit_width}.pth") / (1024 * 1024))
+formatted_PTH_file_size = "{:.2f}".format(os.path.getsize(f"model_{run_info}.pth") / (1024 * 1024))
 
 from torchinfo import summary
 
 model_stats = summary(model, input_size=(batch_size, n_channel, shape_y, shape_x))
 
 
-report = f"""Validation Accuracy: {epoch_test_accuracy :.4f}
-Validation Loss: {epoch_test_loss :.4f}%
+report = f"""\
+Validation Accuracy: {epoch_validation_accuracy :.4f}
+Validation F1 (macro): {epoch_validation_f1 :.4f}
+Validation Loss: {epoch_validation_loss :.4f}%
+
+Test Loss: {test_loss :.4f}%
+Test Accuracy: {test_accuracy :.4f}
+Test Precision (macro) : {test_precision :.4f}
+Test Recall (macro) : {test_recall :.4f}
+Test F1 (macro) : {test_f1 :.4f}
+
 
 Export Path: {export_path}
 Process Time [min]: {time_diff / 60:.2f}
@@ -261,8 +285,10 @@ print("REPORTING is Done!")
 
 # PLOTTING ACCURACY GRAPH
 
-run_info = f"{project_name}_W{weight_bit_width}A{act_bit_width}"
-export_accuracy_graph(train_losses, test_losses, train_accuracies, test_accuracies, process_start_time, run_info) # PLOTTING ACCURACY GRAPH
+export_accuracy_graph(train_losses, validation_losses,
+                      train_accuracies, validation_accuracies,
+                      train_f1s, validation_f1s,
+                      process_start_time, run_info) # PLOTTING ACCURACY GRAPH
 
 
 

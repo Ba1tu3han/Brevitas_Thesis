@@ -1,4 +1,8 @@
+import os
+
 import torch
+from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import precision_recall_fscore_support
 
 
 class Trainer:
@@ -30,7 +34,10 @@ class Trainer:
         num_batches = len(self.train_dataloader)
         self.model.train()
 
-        train_loss, correct = 0, 0
+        train_loss = 0
+
+        true_labels = []
+        predictions = []
         for batch, (X, y) in enumerate(self.train_dataloader):
             X, y = X.to(self.device), y.to(self.device)
 
@@ -44,59 +51,82 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
-
             train_loss += loss.item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-
             if batch % 100 == 0:
                 loss, current = loss.item(), (batch + 1) * len(X)
-                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+                print(f"train loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+
+            true_labels.extend(list(y.cpu().detach().numpy()))
+            predictions.extend(list(pred.argmax(1).cpu().detach().numpy()))
+
+        accuracy = accuracy_score(y_true=true_labels, y_pred=predictions)
+        # ref: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true=true_labels,
+                                                                   y_pred=predictions,
+                                                                   average='macro')
         train_loss /= num_batches
-        correct /= size
-        accuracy = 100 * correct
-        return accuracy, train_loss
+        return accuracy, f1, train_loss
 
     def validate_one_epoch(self):
-        if self.sample_size:
-            size = min(self.sample_size, len(self.val_dataloader.dataset))
-        else:
-            size = len(self.val_dataloader.dataset)
-
         num_batches = len(self.val_dataloader)
         self.model.eval()
-        val_loss, correct = 0, 0
+        val_loss = 0
 
+        true_labels = []
+        predictions = []
         with torch.no_grad():
             for X, y in self.val_dataloader:
                 X, y = X.to(self.device), y.to(self.device)
                 pred = self.model(X)
                 val_loss += self.loss_fn(pred, y).item()
-                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
+                true_labels.extend(list(y.cpu().detach().numpy()))
+                predictions.extend(list(pred.argmax(1).cpu().detach().numpy()))
+
+        accuracy = accuracy_score(y_true=true_labels, y_pred=predictions)
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true=true_labels,
+                                                                   y_pred=predictions,
+                                                                   average='macro')
         val_loss /= num_batches
-        correct /= size
-        accuracy = 100 * correct
-        print(f"Test Error: \n Accuracy (Top1): {accuracy:>0.2f}%, Avg loss: {val_loss:>8f}\n")
-        return accuracy, val_loss
 
-    def test(self):
-        size = len(self.test_dataloader.dataset)
+        print(f"Validation Error: \n Accuracy (Top1): {accuracy:>0.2f}%, F1 (macro): {f1:>0.2f}%, Avg loss: {val_loss:>8f}\n")
+        return accuracy, f1, val_loss
+
+    def test(self, report_name):
         num_batches = len(self.test_dataloader)
         self.model.eval()
-        test_loss, correct = 0, 0
+        test_loss = 0
 
+        true_labels = []
+        predictions = []
         with torch.no_grad():
             for X, y in self.test_dataloader:
                 X, y = X.to(self.device), y.to(self.device)
                 pred = self.model(X)
                 test_loss += self.loss_fn(pred, y).item()
-                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
+                true_labels.extend(list(y.cpu().detach().numpy()))
+                predictions.extend(list(pred.argmax(1).cpu().detach().numpy()))
+
+        accuracy = accuracy_score(y_true=true_labels, y_pred=predictions)
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true=true_labels,
+                                                                   y_pred=predictions,
+                                                                   average='macro')
         test_loss /= num_batches
-        correct /= size
-        accuracy = 100 * correct
-        print(f"Test Error: \n Accuracy (Top1): {accuracy:>0.2f}%, Avg loss: {test_loss:>8f}\n")
-        return accuracy, test_loss
+
+        print(f"Test Error:\nAccuracy (Top1): {accuracy:>0.2f}%, F1 (macro): {f1:>0.2f}, Avg loss: {test_loss:>8f}\n")
+
+        # CREATE CLASSIFICATION REPORT AND EXPORT IT
+        # ref: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+        report = classification_report(y_true=true_labels, y_pred=predictions)
+        clf_report_folder_path = "Classification Reports"
+        if not os.path.exists(clf_report_folder_path):  # Check if the folder exists, if not, create it
+            os.makedirs(clf_report_folder_path)
+
+        with open(os.path.join(clf_report_folder_path, report_name),  "w") as text_file:
+            text_file.write(report)
+
+        return accuracy, precision, recall, f1, test_loss
 
 
 class EarlyStopper:
