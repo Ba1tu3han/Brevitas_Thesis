@@ -121,7 +121,7 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 4e-3 # the best practice is 4e-3
+lr = 5e-3 # the best practice is 4e-3
 epochs = 200 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
