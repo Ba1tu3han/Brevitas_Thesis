@@ -33,9 +33,9 @@ if device == 'cpu':
 
 torch.manual_seed(0) # for torch, Setting seeds for reproducibility, keeps random numbers the same
 np.random.seed(0) # for numpy
-torch.cuda.manual_seed(0) #for reproductability
-torch.backends.cudnn.deterministic = True #for reproductability
-torch.backends.cudnn.benchmark = False #for reproductability
+torch.cuda.manual_seed(0) #for reproducibility
+torch.backends.cudnn.deterministic = True #for reproducibility
+torch.backends.cudnn.benchmark = False #for reproducibility
 
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
@@ -101,8 +101,8 @@ print("SETTINGS UP DATALOADERS is done")
 from CNV_light import cnv # light version of the CNV
 project_name = "CNV_light" # to name the output onnx file. "CNV" or "CNV_light"
 
-weight_bit_width = 1 # quantization configuration for weights
-act_bit_width = 1 # quantization configuration for activation functions
+weight_bit_width = 5 # quantization configuration for weights
+act_bit_width = 5 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
@@ -121,8 +121,8 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 5e-3 # the best practice is 4e-3
-epochs = 200 # upper limit of the number of epoch
+lr = 1e-3 # the best practice is 4e-3
+epochs = 2 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -143,11 +143,11 @@ validation_losses = []
 
 
 min_delta = 0
-patience = 15 # best practice is 15
+patience = 1502 # best practice is 15
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
-
-for t in range(epochs):
+from tqdm import tqdm
+for t in tqdm(range(epochs)):
     print(f"Epoch {t + 1}\n-------------------------------")
     epoch_train_accuracy, epoch_train_f1, epoch_train_loss = trainer.train_one_epoch()
     epoch_validation_accuracy, epoch_validation_f1, epoch_validation_loss = trainer.validate_one_epoch()
@@ -196,7 +196,7 @@ def show_netron(model_path, port):
     time.sleep(3.)
     netron.start(model_path, address=("localhost", port), browse=False)
     return IFrame(src=f"http://localhost:{port}/", width="100%", height=400)
-# show_netron(export_path, 8082) # not necessary
+show_netron(export_path, 8082) # not necessary
 
 print("MODEL VISUALIZATION is Done!")
 
