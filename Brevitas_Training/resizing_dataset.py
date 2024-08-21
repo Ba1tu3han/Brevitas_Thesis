@@ -22,3 +22,13 @@ output_folder = "/home/ba/PycharmProjects/Brevitas_Thesis/Brevitas_Training/data
 
 resize_images(input_folder, output_folder)
 print("Resizing is done.")
+
+
+
+
+
+
+
+
+
+

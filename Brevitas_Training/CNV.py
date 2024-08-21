@@ -20,7 +20,8 @@ from common_cnv import CommonWeightQuant
 from tensor_norm_cnv import TensorNorm
 
 #CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
-CNV_OUT_CH_POOL = [(32, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # for GTSRB dataset
+#CNV_OUT_CH_POOL = [(32, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # for GTSRB dataset
+CNV_OUT_CH_POOL = [(28, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # for CIFAR10 dataset
 
 INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
 LAST_FC_IN_FEATURES = 512

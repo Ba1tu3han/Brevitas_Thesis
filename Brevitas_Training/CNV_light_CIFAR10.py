@@ -1,5 +1,7 @@
 # SOURCE: https://github.com/Xilinx/brevitas/blob/master/src/brevitas_examples/bnn_pynq/models/CNV.py
 
+# This network is light version of the original CNV network of FINN.
+
 # Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -19,28 +21,21 @@ from common_cnv import CommonActQuant
 from common_cnv import CommonWeightQuant
 from tensor_norm_cnv import TensorNorm
 
+#CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
+CNV_OUT_CH_POOL = [(28, False), (64, True), (128, True), (64, True)]
 
-#CNV_OUT_CH_POOL = [(64, False), (64, True), (128, True), (128, True), (256, False)] # modified
-#CNV_OUT_CH_POOL = [(16, True), (32, True), (16, True)] # modified 2
-
-#INTERMEDIATE_FC_FEATURES = [(2304, 512), (512, 512)] # modified
-#INTERMEDIATE_FC_FEATURES = [(256, 512)] # modified 2
-
-# todo: change image resizing to 64x64 to work with this network
-CNV_OUT_CH_POOL = [(64, True), (128, True), (256, True), (512, True), (16, False)]
-INTERMEDIATE_FC_FEATURES = []
+#INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
+INTERMEDIATE_FC_FEATURES = [(256, 256)]
 LAST_FC_IN_FEATURES = 256
 LAST_FC_PER_OUT_CH_SCALING = False
 POOL_SIZE = 2
-POOL_STRIDE = 2
 KERNEL_SIZE = 3
-CNN_PAD = 1
 
 
-class CNVLightweight(Module):
+class CNV(Module):
 
     def __init__(self, num_classes, weight_bit_width, act_bit_width, in_bit_width, in_ch):
-        super(CNVLightweight, self).__init__()
+        super(CNV, self).__init__()
 
         self.conv_features = ModuleList()
         self.linear_features = ModuleList()
@@ -57,7 +52,6 @@ class CNVLightweight(Module):
             self.conv_features.append(
                 QuantConv2d(
                     kernel_size=KERNEL_SIZE,
-                    padding=CNN_PAD,
                     in_channels=in_ch,
                     out_channels=out_ch,
                     bias=False,
@@ -68,8 +62,7 @@ class CNVLightweight(Module):
             self.conv_features.append(
                 QuantIdentity(act_quant=CommonActQuant, bit_width=act_bit_width))
             if is_pool_enabled:
-                self.conv_features.append(MaxPool2d(kernel_size=POOL_SIZE,
-                                                    stride=POOL_STRIDE))
+                self.conv_features.append(MaxPool2d(kernel_size=2))
 
         for in_features, out_features in INTERMEDIATE_FC_FEATURES:
             self.linear_features.append(
@@ -96,6 +89,7 @@ class CNVLightweight(Module):
             if isinstance(m, QuantConv2d) or isinstance(m, QuantLinear):
                 torch.nn.init.uniform_(m.weight.data, -1, 1)
 
+
     def clip_weights(self, min_val, max_val):
         for mod in self.conv_features:
             if isinstance(mod, QuantConv2d):
@@ -113,21 +107,9 @@ class CNVLightweight(Module):
             x = mod(x)
         return x
 
-
-
-
 def cnv(n_channel, weight_bit_width, act_bit_width, in_bit_width, num_classes):
-    #weight_bit_width = cfg.getint('QUANT', 'WEIGHT_BIT_WIDTH')
-    #weight_bit_width = 1/2/4/8
-    #act_bit_width = cfg.getint('QUANT', 'ACT_BIT_WIDTH')
-    #act_bit_width =  1/2/4/8
-    #in_bit_width = cfg.getint('QUANT', 'IN_BIT_WIDTH')
-    #in_bit_width = 8
-    #num_classes = cfg.getint('MODEL', 'NUM_CLASSES')
-    #num_classes = 10
-    #in_channels = cfg.getint('MODEL', 'IN_CHANNELS')
     in_channels = n_channel # grayscale = 1, RGB color = 3
-    net = CNVLightweight(
+    net = CNV(
         weight_bit_width=weight_bit_width,
         act_bit_width=act_bit_width,
         in_bit_width=in_bit_width,

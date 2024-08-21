@@ -49,9 +49,9 @@ resize_tensor = Compose([ # resizing dataset images
   ToTensor()
 ])
 
-train_validation_data = datasets.GTSRB( # German Traffic Sign Dataset
+train_validation_data = datasets.CIFAR10( # German Traffic Sign Dataset
     root = "data",
-    split = "train",
+    train = True,
     download=True,
     transform=resize_tensor
 )
@@ -60,9 +60,9 @@ validation_size = len(train_validation_data) - train_size
 training_data, validation_data = torch.utils.data.random_split(train_validation_data, [train_size, validation_size], generator=torch.Generator().manual_seed(0))
 
 
-test_data = datasets.GTSRB(
+test_data = datasets.CIFAR10(
     root = "data",
-    split = "test",
+    train = False,
     download = True,
     transform=resize_tensor
 )
@@ -97,14 +97,14 @@ print("SETTINGS UP DATALOADERS is done")
 
 # DEFINING A MODEL
 
-#from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
-from CNV_light import cnv # light version of the CNV
-project_name = "CNV_light" # to name the output onnx file. "CNV" or "CNV_light"
+from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
+#from CNV_light_CIFAR10 import cnv # light version of the CNV
+project_name = "CNV_CIFAR10" # to name the output onnx file. "CNV", "CNV_light","CNV_CIFAR10", "CNV_light_CIFAR10"
 
-weight_bit_width = 2 # quantization configuration for weights
-act_bit_width = 2 # quantization configuration for activation functions
+weight_bit_width = 1 # quantization configuration for weights
+act_bit_width = 1 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
-num_classes = 43 # number of class
+num_classes = 10 # number of class
 
 config = "skip"
 
@@ -121,8 +121,8 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 1e-3 # the best practice is 4e-3
-epochs = 500 # upper limit of the number of epoch
+lr = 1e-4 # the best practice is 4e-3
+epochs = 1000 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
     model=model,
@@ -143,7 +143,7 @@ validation_losses = []
 
 
 min_delta = 0
-patience = 501 # best practice is 15
+patience = 20 # best practice is 15
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
 from tqdm import tqdm
