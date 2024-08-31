@@ -45,7 +45,7 @@ batch_size = 32
 n_sample = None
 
 resize_tensor = Compose([ # resizing dataset images
-  Resize([32, 32]), # target size of dataset images # 32x32 is for the original CNV network for GTSRB
+  #Resize([32, 32]), # target size of dataset images # 32x32 is for the original CNV network for GTSRB
   ToTensor()
 ])
 
@@ -97,12 +97,12 @@ print("SETTINGS UP DATALOADERS is done")
 
 # DEFINING A MODEL
 
-from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
+from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case. Change the input layer depending on datasets.
 #from CNV_light_CIFAR10 import cnv # light version of the CNV
 project_name = "CNV_CIFAR10" # to name the output onnx file. "CNV", "CNV_light","CNV_CIFAR10", "CNV_light_CIFAR10"
 
-weight_bit_width = 1 # quantization configuration for weights
-act_bit_width = 1 # quantization configuration for activation functions
+weight_bit_width = 2 # quantization configuration for weights
+act_bit_width = 2 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 10 # number of class
 
@@ -121,7 +121,7 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 1e-4 # the best practice is 4e-3
+lr = 3e-3 # the best practice is 4e-3
 epochs = 1000 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
@@ -143,7 +143,7 @@ validation_losses = []
 
 
 min_delta = 0
-patience = 20 # best practice is 15
+patience = 15 # best practice is 15
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
 from tqdm import tqdm
