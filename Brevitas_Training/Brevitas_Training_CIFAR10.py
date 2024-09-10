@@ -97,12 +97,12 @@ print("SETTINGS UP DATALOADERS is done")
 
 # DEFINING A MODEL
 
-from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case. Change the input layer depending on datasets.
-#from CNV_light_CIFAR10 import cnv # light version of the CNV
-project_name = "CNV_CIFAR10" # to name the output onnx file. "CNV", "CNV_light","CNV_CIFAR10", "CNV_light_CIFAR10"
+#from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case. Change the input layer depending on datasets.
+from CNV_light import cnv # light version of the CNV
+project_name = "CNV_light_CIFAR10" # to name the output onnx file. "CNV", "CNV_light","CNV_light_CIFAR10", "CNV_light_CIFAR10"
 
-weight_bit_width = 2 # quantization configuration for weights
-act_bit_width = 2 # quantization configuration for activation functions
+weight_bit_width = 1 # quantization configuration for weights
+act_bit_width = 1 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 10 # number of class
 

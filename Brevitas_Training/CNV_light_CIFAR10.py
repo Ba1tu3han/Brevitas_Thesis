@@ -22,7 +22,7 @@ from common_cnv import CommonWeightQuant
 from tensor_norm_cnv import TensorNorm
 
 #CNV_OUT_CH_POOL = [(64, False), (64, True), (128, False), (128, True), (256, False), (256, False)] # original
-CNV_OUT_CH_POOL = [(28, False), (64, True), (128, True), (64, True)]
+CNV_OUT_CH_POOL = [(32, False), (64, True), (128, True), (64, True)] # for CIFAR10
 
 #INTERMEDIATE_FC_FEATURES = [(256, 512), (512, 512)] # original
 INTERMEDIATE_FC_FEATURES = [(256, 256)]
