@@ -30,7 +30,7 @@ if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
 # REPRODUCIBILITY
-seed = 1 # controls all seed parameters in this code
+seed = 2 # controls all seed parameters in this code
 torch.manual_seed(seed) # for torch, Setting seeds for reproducibility, keeps random numbers the same
 np.random.seed(seed) # for numpy
 torch.cuda.manual_seed(seed) #for reproducibility
@@ -51,10 +51,11 @@ resize_tensor = Compose([ # resizing dataset images
 
 train_validation_data = datasets.CIFAR10(
     root = "data",
-    train = True,
+    train = True, #train = True for MNIST, split = "train" for GTSRB
     download=True,
     transform=resize_tensor
 )
+
 train_size = int(0.8 * len(train_validation_data))
 validation_size = len(train_validation_data) - train_size
 training_data, validation_data = torch.utils.data.random_split(train_validation_data, [train_size, validation_size], generator=torch.Generator().manual_seed(seed))
@@ -99,12 +100,12 @@ print("SETTINGS UP DATALOADERS is done")
 
 from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
 #from CNV_light import cnv # light version of the CNV
-project_name = "CNV_CIFAR10" # to name the output onnx file. "CNV" or "CNV_light"
+project_name = "CNV_GTSRB" # to name the output onnx file. "CNV" or "CNV_light"
 
 weight_bit_width = 1 # quantization configuration for weights
 act_bit_width = 1 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
-num_classes = 10 # number of class
+num_classes = 43 # number of class
 
 config = "skip"
 

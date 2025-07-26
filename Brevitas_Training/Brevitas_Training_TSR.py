@@ -30,12 +30,12 @@ if device == 'cpu':
     sys.exit("It is stopped because device is selected as CPU")
 
 # REPRODUCIBILITY
-
-torch.manual_seed(0) # for torch, Setting seeds for reproducibility, keeps random numbers the same
-np.random.seed(0) # for numpy
-torch.cuda.manual_seed(0) #for reproducibility
-torch.backends.cudnn.deterministic = True #for reproducibility
-torch.backends.cudnn.benchmark = False #for reproducibility
+seed = 0
+torch.manual_seed(seed) # for torch, Setting seeds for reproducibility, keeps random numbers the same
+np.random.seed(seed) # for numpy
+torch.cuda.manual_seed(seed) #for reproducibility
+torch.backends.cudnn.deterministic = False #True for reproducibility
+torch.backends.cudnn.benchmark = True # False for reproducibility
 
 
 #  DOWNLOAD TRAINING AND TEST DATASETS FROM OPEN DATASETS
@@ -57,7 +57,7 @@ train_validation_data = datasets.GTSRB( # German Traffic Sign Dataset
 )
 train_size = int(0.8 * len(train_validation_data))
 validation_size = len(train_validation_data) - train_size
-training_data, validation_data = torch.utils.data.random_split(train_validation_data, [train_size, validation_size], generator=torch.Generator().manual_seed(0))
+training_data, validation_data = torch.utils.data.random_split(train_validation_data, [train_size, validation_size], generator=torch.Generator().manual_seed(seed))
 
 
 test_data = datasets.GTSRB(
@@ -97,12 +97,12 @@ print("SETTINGS UP DATALOADERS is done")
 
 # DEFINING A MODEL
 
-from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
-#from CNV_light import cnv # light version of the CNV
-project_name = "CNV_GTSRB" # to name the output onnx file. "CNV" or "CNV_light"
+#from CNV import cnv # Original CNV network. Be careful "import cnv" shall be lower case.
+from CNV_light import cnv # light version of the CNV
+project_name = "CNV_light_GTSRB" # to name the output onnx file. "CNV" or "CNV_light"
 
-weight_bit_width = 8 # quantization configuration for weights
-act_bit_width = 8 # quantization configuration for activation functions
+weight_bit_width = 4 # quantization configuration for weights
+act_bit_width = 4 # quantization configuration for activation functions
 in_bit_width = 8 # bit width of input
 num_classes = 43 # number of class
 
@@ -121,7 +121,7 @@ print("DEFINING A MODEL is done")
 # loss_fn = SqrHingeLoss()  # loss function
 
 loss_fn = nn.CrossEntropyLoss()  # loss function
-lr = 2e-3 # the best practice is 4e-3
+lr = 4e-3 # the best practice is 4e-3
 epochs = 1000 # upper limit of the number of epoch
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # optimizer
 trainer = Trainer(
@@ -143,7 +143,7 @@ validation_losses = []
 
 
 min_delta = 0
-patience = 40 # best practice is 15
+patience = 15 # best practice is 15
 early_stopper = EarlyStopper(patience=patience, min_delta=min_delta)
 early_stopper_flag = False # for the Brevitas Report
 from tqdm import tqdm

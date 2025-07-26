@@ -27,7 +27,8 @@ extended_test_loader = DataLoader(extended_test_data, batch_size=batch_size, shu
 # Load your trained PyTorch model
 from CNV_light import cnv  # light version of the CNV
 model = cnv(3, 2, 2, 8, 43)  # Replace with your actual architecture
-model.load_state_dict(torch.load("/home/ba/PycharmProjects/Brevitas_Thesis/Brevitas_Training/CNV_light_GTSRB/CNV_light_GTSRB_W4A4/model_CNV_light_GTSRB_W4A4.pth"))
+model.load_state_dict(torch.load(
+    "/Brevitas_Training/CNV_light_GTSRB/CNV_light_GTSRB_W4A4/Seed0/model_CNV_light_GTSRB_W4A4.pth"))
 
 # Warm-up function
 def warm_up(model, dataloader, device, warmup_iters=1000):

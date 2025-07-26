@@ -27,7 +27,7 @@ def export_accuracy_graph(train_losses, validation_losses,
         os.makedirs(accuracy_graph_folder_path)
 
     epoch_list = list(range(len(train_losses)))  # to list epochs to the end
-    fig, ax = plt.subplots(3, 1)
+    fig, ax = plt.subplots(2, 1)
 
     ax[0].plot(epoch_list, train_losses, label="Train Loss")
     ax[0].plot(epoch_list, validation_losses, label="Validation Loss")
@@ -40,11 +40,11 @@ def export_accuracy_graph(train_losses, validation_losses,
     ax[1].set_ylabel('Accuracy (Top1)')
     ax[1].legend()
 
-    ax[2].plot(epoch_list, train_f1s, label="Train F1")
-    ax[2].plot(epoch_list, validation_f1s, label="Validation F1")
-    ax[2].set_xlabel('Number of Epoch')
-    ax[2].set_ylabel('F1 (macro)')
-    ax[2].legend()
+    #ax[2].plot(epoch_list, train_f1s, label="Train F1")
+    #ax[2].plot(epoch_list, validation_f1s, label="Validation F1")
+    #ax[2].set_xlabel('Number of Epoch')
+    #ax[2].set_ylabel('F1 (macro)')
+    #ax[2].legend()
 
 
     figure_name = f"Accuracy_Loss_Plot {run_info} {process_start_time}.png"
