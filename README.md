@@ -1,6 +1,6 @@
 # Goal
 
-Binary and 4 bit-width quantization-aware-training (QAT) a custom neural-network model. Output of the process ONNX file is used as input file of FINN compiler.
+Training a CNN based custom neural network model with Pytorch and quantize its layers to 1, 2, 4, 8-bit with quantization-aware-training (QAT). Output of the process ONNX file is used as input file of FINN compiler.
 
 
 # Brevitas
@@ -26,19 +26,11 @@ Xilinx:
 https://github.com/Xilinx/brevitas  
 https://xilinx.github.io/brevitas/getting_started
 
-# Directory
+# Master Thesis
 
-Directories are followed respectively and each step has variants. 
+For more detail, please check the Brevitas sections of the thesis in the link below.
 
-1-Basic (W1A2, W2A2) 
-
-2-Advance 
-
-3-Custom 
-
-# Big Picture of Brevitas-FINN-FPGA
-
-![General Diagram 28-2-2024 drawio](https://github.com/Ba1tu3han/Brevitas_Thesis/assets/29502318/0e7366da-9970-4caf-b2cf-047b0399774a)
+https://tez.yok.gov.tr/UlusalTezMerkezi/TezGoster?key=E_eEUHQic_C-LvhxNQn1W0hnFEbNK8bSxQeObEvnsyE7qqMk72nSpDIRccrqG9v7
 
 
 
